@@ -1,6 +1,12 @@
 [package]
 name = "fig2json"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# ZIP archive handling
+zip = "0.6"
