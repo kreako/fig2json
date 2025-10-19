@@ -10,9 +10,6 @@ const FIGJAM_MAGIC: &[u8; 8] = b"fig-jam.";
 /// ZIP magic signature (first two bytes)
 const ZIP_MAGIC: &[u8; 2] = b"PK";
 
-/// Minimum file size for a valid .fig file (8 bytes header + 4 bytes version)
-const MIN_FILE_SIZE: usize = 12;
-
 /// Detect the file type based on magic header
 ///
 /// # Arguments

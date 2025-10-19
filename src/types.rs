@@ -24,7 +24,7 @@ impl ParsedFile {
 
     /// Get the schema chunk (first chunk)
     pub fn schema_chunk(&self) -> Option<&[u8]> {
-        self.chunks.get(0).map(|v| v.as_slice())
+        self.chunks.first().map(|v| v.as_slice())
     }
 
     /// Get the data chunk (second chunk)
