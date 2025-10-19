@@ -10,3 +10,7 @@ thiserror = "1.0"
 
 # ZIP archive handling
 zip = "0.6"
+
+# Compression
+flate2 = "1.0"
+zstd = "0.13"
