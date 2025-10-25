@@ -48,6 +48,7 @@ pub use types::{FileType, ParsedFile};
 /// 6. Tree building from nodeChanges
 /// 7. Blob base64 encoding
 /// 8. Blob substitution (replace blob indices with parsed content)
+/// 9. Image hash transformation (convert hash arrays to filename strings)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -116,6 +117,10 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // 8. Substitute blob references in document tree with parsed blob content
     // This replaces fields like "commandsBlob: 5" with "commands: [parsed array]"
     blobs::substitute_blobs(&mut document, processed_blobs.as_array().unwrap())?;
+
+    // 9. Transform image hash arrays to filename strings
+    // This converts "image.hash: [96, 73, ...]" to "image.filename: images/6049..."
+    schema::transform_image_hashes(&mut document)?;
 
     // Build final JSON output
     Ok(serde_json::json!({
