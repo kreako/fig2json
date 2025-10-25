@@ -47,6 +47,7 @@ pub use types::{FileType, ParsedFile};
 /// 5. Kiwi schema decoding
 /// 6. Tree building from nodeChanges
 /// 7. Blob base64 encoding
+/// 8. Blob substitution (replace blob indices with parsed content)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -101,7 +102,7 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         .ok_or_else(|| FigError::ZipError("No nodeChanges found in decoded data".to_string()))?
         .clone();
 
-    let document = schema::build_tree(node_changes)?;
+    let mut document = schema::build_tree(node_changes)?;
 
     // 7. Extract and process blobs (convert to base64)
     let blobs = json
@@ -111,6 +112,10 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         .clone();
 
     let processed_blobs = blobs::process_blobs(blobs)?;
+
+    // 8. Substitute blob references in document tree with parsed blob content
+    // This replaces fields like "commandsBlob: 5" with "commands: [parsed array]"
+    blobs::substitute_blobs(&mut document, processed_blobs.as_array().unwrap())?;
 
     // Build final JSON output
     Ok(serde_json::json!({

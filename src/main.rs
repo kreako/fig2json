@@ -7,10 +7,11 @@ use std::path::PathBuf;
 #[command(name = "fig2json")]
 #[command(version, about = "Convert Figma .fig files to JSON")]
 #[command(long_about = "Convert Figma .fig files to JSON\n\n\
+    JSON output is pretty-printed by default with indentation.\n\n\
     For regular .fig files:\n  \
-    fig2json input.fig [-o output.json] [-p] [-v]\n\n\
+    fig2json input.fig [-o output.json] [--compact] [-v]\n\n\
     For ZIP files (extracts all and converts all .fig files inside):\n  \
-    fig2json input.zip extract-dir [-p] [-v]")]
+    fig2json input.zip extract-dir [--compact] [-v]")]
 struct Cli {
     /// Input .fig or .zip file path
     input: PathBuf,
@@ -22,9 +23,9 @@ struct Cli {
     #[arg(short, long)]
     output: Option<PathBuf>,
 
-    /// Pretty-print JSON output
-    #[arg(short, long)]
-    pretty: bool,
+    /// Compact JSON output (default is pretty-printed with indentation)
+    #[arg(long)]
+    compact: bool,
 
     /// Verbose output for debugging
     #[arg(short, long)]
@@ -64,7 +65,7 @@ fn main() -> Result<()> {
         }
 
         // ZIP extraction mode
-        handle_zip_mode(&bytes, extract_dir, cli.pretty, cli.verbose)?;
+        handle_zip_mode(&bytes, extract_dir, cli.compact, cli.verbose)?;
     } else {
         // Regular .fig file mode
         if cli.verbose {
@@ -77,11 +78,11 @@ fn main() -> Result<()> {
             eprintln!("Conversion successful!");
         }
 
-        // Format output
-        let output = if cli.pretty {
-            serde_json::to_string_pretty(&json)?
-        } else {
+        // Format output (pretty by default, compact if flag is set)
+        let output = if cli.compact {
             serde_json::to_string(&json)?
+        } else {
+            serde_json::to_string_pretty(&json)?
         };
 
         // Write output
@@ -106,7 +107,7 @@ fn main() -> Result<()> {
 }
 
 /// Handle ZIP extraction mode: extract all files and convert all .fig files found
-fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, pretty: bool, verbose: bool) -> Result<()> {
+fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, compact: bool, verbose: bool) -> Result<()> {
     if verbose {
         eprintln!("ZIP file detected - extracting to: {}", extract_dir.display());
     }
@@ -150,11 +151,11 @@ fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, pretty: bool, verbos
         let json = fig2json::convert(&fig_bytes)
             .with_context(|| format!("Failed to convert: {}", fig_path.display()))?;
 
-        // Format output
-        let output = if pretty {
-            serde_json::to_string_pretty(&json)?
-        } else {
+        // Format output (pretty by default, compact if flag is set)
+        let output = if compact {
             serde_json::to_string(&json)?
+        } else {
+            serde_json::to_string_pretty(&json)?
         };
 
         // Determine output path: same as .fig but with .json extension

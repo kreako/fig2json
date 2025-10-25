@@ -1,6 +1,13 @@
+pub mod parser;
+pub mod substitution;
+
 use crate::error::Result;
 use base64::{engine::general_purpose, Engine as _};
 use serde_json::Value as JsonValue;
+
+// Re-export commonly used items
+pub use parser::{parse_blob, parse_commands, parse_vector_network};
+pub use substitution::substitute_blobs;
 
 /// Process blobs array by encoding binary data to base64
 ///

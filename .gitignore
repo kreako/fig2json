@@ -3,3 +3,4 @@ archives
 .DS_Store
 test-olivier
 CLAUDE.md
+Cargo.lock
