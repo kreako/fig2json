@@ -49,12 +49,13 @@ pub use types::{FileType, ParsedFile};
 /// 7. Blob base64 encoding
 /// 8. Blob substitution (replace blob indices with parsed content)
 /// 9. Image hash transformation (convert hash arrays to filename strings)
+/// 10. Root blobs removal (remove now-unnecessary blobs array from output)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
 ///
 /// # Returns
-/// * `Ok(serde_json::Value)` - JSON representation with document tree, blobs, and metadata
+/// * `Ok(serde_json::Value)` - JSON representation with document tree and metadata
 /// * `Err(FigError)` - If conversion fails at any stage
 ///
 /// # Example
@@ -123,7 +124,7 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     schema::transform_image_hashes(&mut document)?;
 
     // Build final JSON output
-    Ok(serde_json::json!({
+    let mut output = serde_json::json!({
         "version": parsed.version,
         "fileType": match file_type {
             FileType::Figma => "figma",
@@ -131,5 +132,10 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         },
         "document": document,
         "blobs": processed_blobs,
-    }))
+    });
+
+    // 10. Remove root-level blobs array (no longer needed after substitution)
+    schema::remove_root_blobs(&mut output)?;
+
+    Ok(output)
 }
