@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use std::fs;
 use std::path::PathBuf;
@@ -6,11 +6,19 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(name = "fig2json")]
 #[command(version, about = "Convert Figma .fig files to JSON")]
+#[command(long_about = "Convert Figma .fig files to JSON\n\n\
+    For regular .fig files:\n  \
+    fig2json input.fig [-o output.json] [-p] [-v]\n\n\
+    For ZIP files (extracts all and converts all .fig files inside):\n  \
+    fig2json input.zip extract-dir [-p] [-v]")]
 struct Cli {
-    /// Input .fig file path
+    /// Input .fig or .zip file path
     input: PathBuf,
 
-    /// Output JSON file path (default: stdout)
+    /// Directory to extract ZIP contents (required for ZIP files, converts all .fig files found)
+    extract_dir: Option<PathBuf>,
+
+    /// Output JSON file path (default: stdout) - Cannot be used with extract_dir
     #[arg(short, long)]
     output: Option<PathBuf>,
 
@@ -36,39 +44,158 @@ fn main() -> Result<()> {
 
     if cli.verbose {
         eprintln!("File size: {} bytes", bytes.len());
-        eprintln!("Converting to JSON...");
     }
 
-    // Convert to JSON
-    let json = fig2json::convert(&bytes).context("Failed to convert .fig file to JSON")?;
+    // Check if input is a ZIP container
+    let is_zip = fig2json::parser::is_zip_container(&bytes);
 
-    if cli.verbose {
-        eprintln!("Conversion successful!");
-    }
+    // Validate arguments based on file type
+    if is_zip {
+        // ZIP mode: require extract_dir, forbid -o
+        let extract_dir = cli.extract_dir.as_ref()
+            .ok_or_else(|| anyhow!("ZIP files require an extraction directory as second argument"))?;
 
-    // Format output
-    let output = if cli.pretty {
-        serde_json::to_string_pretty(&json)?
-    } else {
-        serde_json::to_string(&json)?
-    };
-
-    // Write output
-    match cli.output {
-        Some(path) => {
-            if cli.verbose {
-                eprintln!("Writing output to: {}", path.display());
-            }
-            fs::write(&path, output)
-                .with_context(|| format!("Failed to write output file: {}", path.display()))?;
-            if cli.verbose {
-                eprintln!("Done!");
-            }
+        if cli.output.is_some() {
+            bail!("Cannot use -o/--output flag with extraction directory (ZIP mode)");
         }
-        None => {
-            println!("{}", output);
+
+        if extract_dir.exists() {
+            bail!("Extraction directory already exists: {}\nPlease remove it first", extract_dir.display());
+        }
+
+        // ZIP extraction mode
+        handle_zip_mode(&bytes, extract_dir, cli.pretty, cli.verbose)?;
+    } else {
+        // Regular .fig file mode
+        if cli.verbose {
+            eprintln!("Converting to JSON...");
+        }
+
+        let json = fig2json::convert(&bytes).context("Failed to convert .fig file to JSON")?;
+
+        if cli.verbose {
+            eprintln!("Conversion successful!");
+        }
+
+        // Format output
+        let output = if cli.pretty {
+            serde_json::to_string_pretty(&json)?
+        } else {
+            serde_json::to_string(&json)?
+        };
+
+        // Write output
+        match cli.output {
+            Some(path) => {
+                if cli.verbose {
+                    eprintln!("Writing output to: {}", path.display());
+                }
+                fs::write(&path, output)
+                    .with_context(|| format!("Failed to write output file: {}", path.display()))?;
+                if cli.verbose {
+                    eprintln!("Done!");
+                }
+            }
+            None => {
+                println!("{}", output);
+            }
         }
     }
 
     Ok(())
+}
+
+/// Handle ZIP extraction mode: extract all files and convert all .fig files found
+fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, pretty: bool, verbose: bool) -> Result<()> {
+    if verbose {
+        eprintln!("ZIP file detected - extracting to: {}", extract_dir.display());
+    }
+
+    // Extract entire ZIP to directory
+    fig2json::parser::extract_zip_to_directory(zip_bytes, extract_dir)
+        .context("Failed to extract ZIP file")?;
+
+    if verbose {
+        eprintln!("ZIP extracted successfully");
+        eprintln!("Searching for .fig files...");
+    }
+
+    // Find all .fig files in extracted contents
+    let fig_files = find_fig_files(extract_dir)?;
+
+    if fig_files.is_empty() {
+        bail!("No .fig files found in ZIP archive");
+    }
+
+    let file_count = fig_files.len();
+
+    if verbose {
+        eprintln!("Found {} .fig file(s)", file_count);
+    }
+
+    // Convert each .fig file
+    for fig_path in fig_files {
+        let relative_path = fig_path.strip_prefix(extract_dir)
+            .unwrap_or(&fig_path);
+
+        if verbose {
+            eprintln!("Converting: {}", relative_path.display());
+        }
+
+        // Read .fig file
+        let fig_bytes = fs::read(&fig_path)
+            .with_context(|| format!("Failed to read .fig file: {}", fig_path.display()))?;
+
+        // Convert to JSON
+        let json = fig2json::convert(&fig_bytes)
+            .with_context(|| format!("Failed to convert: {}", fig_path.display()))?;
+
+        // Format output
+        let output = if pretty {
+            serde_json::to_string_pretty(&json)?
+        } else {
+            serde_json::to_string(&json)?
+        };
+
+        // Determine output path: same as .fig but with .json extension
+        let output_path = fig_path.with_extension("json");
+
+        // Write JSON file
+        fs::write(&output_path, output)
+            .with_context(|| format!("Failed to write output: {}", output_path.display()))?;
+
+        if verbose {
+            eprintln!("  → {}", output_path.strip_prefix(extract_dir).unwrap_or(&output_path).display());
+        }
+    }
+
+    if verbose {
+        eprintln!("Done! Converted {} file(s)", file_count);
+    }
+
+    Ok(())
+}
+
+/// Recursively find all .fig files in a directory
+fn find_fig_files(dir: &PathBuf) -> Result<Vec<PathBuf>> {
+    let mut fig_files = Vec::new();
+
+    fn visit_dir(dir: &PathBuf, fig_files: &mut Vec<PathBuf>) -> Result<()> {
+        if dir.is_dir() {
+            for entry in fs::read_dir(dir)? {
+                let entry = entry?;
+                let path = entry.path();
+
+                if path.is_dir() {
+                    visit_dir(&path, fig_files)?;
+                } else if path.extension().and_then(|s| s.to_str()) == Some("fig") {
+                    fig_files.push(path);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    visit_dir(dir, &mut fig_files)?;
+    Ok(fig_files)
 }

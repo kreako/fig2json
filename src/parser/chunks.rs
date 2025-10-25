@@ -1,6 +1,8 @@
 use crate::error::{FigError, Result};
 use crate::types::ParsedFile;
+use std::fs;
 use std::io::{Cursor, Read};
+use std::path::Path;
 use zip::ZipArchive;
 
 /// Minimum file size for a valid .fig file (8 bytes header + 4 bytes version)
@@ -45,6 +47,62 @@ pub fn extract_from_zip(bytes: &[u8]) -> Result<Vec<u8>> {
     }
 
     Err(FigError::CanvasNotFoundInZip)
+}
+
+/// Extract entire ZIP archive to a directory
+///
+/// Extracts all files from a ZIP archive to the specified directory,
+/// preserving the directory structure from the ZIP file.
+///
+/// # Arguments
+/// * `bytes` - Raw ZIP file bytes
+/// * `target_dir` - Directory to extract files to (must not exist)
+///
+/// # Returns
+/// * `Ok(())` - If extraction succeeds
+/// * `Err(FigError)` - If extraction fails
+///
+/// # Examples
+/// ```no_run
+/// use fig2json::parser::extract_zip_to_directory;
+/// use std::path::Path;
+///
+/// let zip_bytes = std::fs::read("example.zip").unwrap();
+/// extract_zip_to_directory(&zip_bytes, Path::new("output")).unwrap();
+/// ```
+pub fn extract_zip_to_directory(bytes: &[u8], target_dir: &Path) -> Result<()> {
+    let cursor = Cursor::new(bytes);
+    let mut archive = ZipArchive::new(cursor)?;
+
+    // Create target directory
+    fs::create_dir_all(target_dir)?;
+
+    // Extract each file
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let file_path = match file.enclosed_name() {
+            Some(path) => path.to_owned(),
+            None => continue, // Skip files with unsafe names
+        };
+
+        let output_path = target_dir.join(&file_path);
+
+        if file.is_dir() {
+            // Create directory
+            fs::create_dir_all(&output_path)?;
+        } else {
+            // Create parent directories if needed
+            if let Some(parent) = output_path.parent() {
+                fs::create_dir_all(parent)?;
+            }
+
+            // Extract file
+            let mut output_file = fs::File::create(&output_path)?;
+            std::io::copy(&mut file, &mut output_file)?;
+        }
+    }
+
+    Ok(())
 }
 
 /// Extract chunks from a .fig file (version format)
