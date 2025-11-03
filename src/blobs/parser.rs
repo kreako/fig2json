@@ -246,9 +246,9 @@ pub fn parse_commands(bytes: &[u8]) -> Option<JsonValue> {
 /// - Header: vertexCount (u32), segmentCount (u32), regionCount (u32)
 /// - Vertices: styleID (u32), x (f32), y (f32) - repeated vertexCount times
 /// - Segments: styleID (u32), startVertex (u32), start.dx (f32), start.dy (f32),
-///             endVertex (u32), end.dx (f32), end.dy (f32) - repeated segmentCount times
+///   endVertex (u32), end.dx (f32), end.dy (f32) - repeated segmentCount times
 /// - Regions: styleID+windingRule (u32), loopCount (u32),
-///           then for each loop: indexCount (u32), indices (u32[]) - repeated regionCount times
+///   then for each loop: indexCount (u32), indices (u32[]) - repeated regionCount times
 ///
 /// All values are little-endian.
 ///

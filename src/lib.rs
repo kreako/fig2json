@@ -82,13 +82,13 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     let parsed = parser::extract_chunks(&bytes)?;
 
     // 4. Decompress chunks
-    let schema_bytes = parser::decompress_chunk(parsed.schema_chunk().ok_or_else(|| {
+    let schema_bytes = parser::decompress_chunk(parsed.schema_chunk().ok_or({
         FigError::NotEnoughChunks {
             expected: 1,
             actual: 0,
         }
     })?)?;
-    let data_bytes = parser::decompress_chunk(parsed.data_chunk().ok_or_else(|| {
+    let data_bytes = parser::decompress_chunk(parsed.data_chunk().ok_or({
         FigError::NotEnoughChunks {
             expected: 2,
             actual: parsed.chunks.len(),

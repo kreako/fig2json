@@ -45,7 +45,7 @@ pub fn build_tree(node_changes: Vec<JsonValue>) -> Result<JsonValue> {
 
             parent_to_children
                 .entry(parent_guid)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push((position, child_guid));
         }
     }
