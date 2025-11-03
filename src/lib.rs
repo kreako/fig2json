@@ -50,7 +50,8 @@ pub use types::{FileType, ParsedFile};
 /// 8. Blob substitution (replace blob indices with parsed content)
 /// 9. Image hash transformation (convert hash arrays to filename strings)
 /// 10. Matrix to CSS transformation (convert 2D affine matrices to CSS properties)
-/// 11. Root blobs removal (remove now-unnecessary blobs array from output)
+/// 11. Text glyphs removal (remove glyph vector data from text objects)
+/// 12. Root blobs removal (remove now-unnecessary blobs array from output)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -128,6 +129,10 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // This converts "transform: {m00, m01, m02, m10, m11, m12}" to "transform: {x, y, rotation, scaleX, scaleY, skewX}"
     schema::transform_matrix_to_css(&mut document)?;
 
+    // 11. Remove text glyph vector data
+    // This removes "glyphs" arrays from "derivedTextData" objects to reduce output size
+    schema::remove_text_glyphs(&mut document)?;
+
     // Build final JSON output
     let mut output = serde_json::json!({
         "version": parsed.version,
@@ -139,7 +144,7 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         "blobs": processed_blobs,
     });
 
-    // 11. Remove root-level blobs array (no longer needed after substitution)
+    // 12. Remove root-level blobs array (no longer needed after substitution)
     schema::remove_root_blobs(&mut output)?;
 
     Ok(output)
