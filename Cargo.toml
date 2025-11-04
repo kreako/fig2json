@@ -27,3 +27,6 @@ base64 = "0.21"
 
 # CLI argument parsing
 clap = { version = "4.5", features = ["derive"] }
+
+[lints.clippy]
+all = "deny"

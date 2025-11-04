@@ -52,7 +52,18 @@ pub use types::{FileType, ParsedFile};
 /// 10. Matrix to CSS transformation (convert 2D affine matrices to CSS properties)
 /// 11. Color to CSS transformation (convert RGBA color objects to CSS hex strings)
 /// 12. Text glyphs removal (remove glyph vector data from text objects)
-/// 13. Root blobs removal (remove now-unnecessary blobs array from output)
+/// 13. Enum simplification (convert verbose enum objects to simple strings)
+/// 14. GUID removal (remove internal Figma identifiers)
+/// 15. Edit info removal (remove version control metadata)
+/// 16. Phase removal (remove Figma internal state)
+/// 17. Geometry removal (remove detailed path commands)
+/// 18. Text layout removal (remove detailed text layout data)
+/// 19. Text metadata removal (remove text configuration metadata)
+/// 20. Stroke properties removal (remove CSS-incompatible stroke properties)
+/// 21. Frame properties removal (remove frame-specific metadata)
+/// 22. Image metadata removal (remove image metadata fields)
+/// 23. Document properties removal (remove document-level properties)
+/// 24. Root blobs removal (remove now-unnecessary blobs array from output)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -138,6 +149,37 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // This removes "glyphs" arrays from "derivedTextData" objects to reduce output size
     schema::remove_text_glyphs(&mut document)?;
 
+    // 13. Simplify enum objects to simple strings
+    // This converts {"__enum__": "NodeType", "value": "FRAME"} to "FRAME"
+    schema::simplify_enums(&mut document)?;
+
+    // 14. Remove GUID fields (internal Figma identifiers)
+    schema::remove_guid_fields(&mut document)?;
+
+    // 15. Remove editInfo fields (version control metadata)
+    schema::remove_edit_info_fields(&mut document)?;
+
+    // 16. Remove phase fields (Figma internal state)
+    schema::remove_phase_fields(&mut document)?;
+
+    // 17. Remove geometry fields (detailed path commands)
+    schema::remove_geometry_fields(&mut document)?;
+
+    // 18. Remove text layout fields (detailed text layout data)
+    schema::remove_text_layout_fields(&mut document)?;
+
+    // 19. Remove text metadata fields (text configuration metadata)
+    schema::remove_text_metadata_fields(&mut document)?;
+
+    // 20. Remove stroke properties (CSS-incompatible stroke properties)
+    schema::remove_stroke_properties(&mut document)?;
+
+    // 21. Remove frame properties (frame-specific metadata)
+    schema::remove_frame_properties(&mut document)?;
+
+    // 22. Remove image metadata fields (image metadata)
+    schema::remove_image_metadata_fields(&mut document)?;
+
     // Build final JSON output
     let mut output = serde_json::json!({
         "version": parsed.version,
@@ -149,7 +191,10 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         "blobs": processed_blobs,
     });
 
-    // 13. Remove root-level blobs array (no longer needed after substitution)
+    // 23. Remove document properties (document-level properties)
+    schema::remove_document_properties(&mut output)?;
+
+    // 24. Remove root-level blobs array (no longer needed after substitution)
     schema::remove_root_blobs(&mut output)?;
 
     Ok(output)
