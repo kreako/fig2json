@@ -11,6 +11,7 @@ use serde_json::Value as JsonValue;
 /// - "originalImageWidth" - Original image width
 /// - "originalImageHeight" - Original image height
 /// - "altText" - Alternative text for image
+/// - "imageThumbnail" - Thumbnail image (duplicate of image field)
 /// - "rotation" - Image rotation (when inside paint objects)
 /// - "scale" - Image scale (when inside paint objects)
 ///
@@ -58,6 +59,7 @@ fn transform_recursive(value: &mut JsonValue) -> Result<()> {
             map.remove("originalImageWidth");
             map.remove("originalImageHeight");
             map.remove("altText");
+            map.remove("imageThumbnail");
 
             // Check if this is a paint object with image properties
             // (rotation and scale should only be removed in certain contexts)
@@ -322,5 +324,54 @@ mod tests {
         assert_eq!(tree.get("width").unwrap().as_i64(), Some(100));
         assert_eq!(tree.get("height").unwrap().as_i64(), Some(200));
         assert_eq!(tree.get("visible").unwrap().as_bool(), Some(true));
+    }
+
+    #[test]
+    fn test_remove_image_thumbnail() {
+        let mut tree = json!({
+            "fillPaints": [
+                {
+                    "type": "IMAGE",
+                    "image": {
+                        "filename": "images/abc123",
+                        "name": "Photo"
+                    },
+                    "imageThumbnail": {
+                        "filename": "images/abc123",
+                        "name": "Photo"
+                    }
+                }
+            ]
+        });
+
+        remove_image_metadata_fields(&mut tree).unwrap();
+
+        let paint = &tree["fillPaints"][0];
+        // imageThumbnail should be removed (duplicate of image)
+        assert!(paint.get("imageThumbnail").is_none());
+        // image should be preserved
+        assert!(paint.get("image").is_some());
+    }
+
+    #[test]
+    fn test_remove_image_thumbnail_nested() {
+        let mut tree = json!({
+            "children": [
+                {
+                    "fillPaints": [
+                        {
+                            "image": {"filename": "images/abc"},
+                            "imageThumbnail": {"filename": "images/abc"}
+                        }
+                    ]
+                }
+            ]
+        });
+
+        remove_image_metadata_fields(&mut tree).unwrap();
+
+        let paint = &tree["children"][0]["fillPaints"][0];
+        assert!(paint.get("imageThumbnail").is_none());
+        assert!(paint.get("image").is_some());
     }
 }

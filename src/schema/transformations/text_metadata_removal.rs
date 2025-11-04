@@ -15,6 +15,8 @@ use serde_json::Value as JsonValue;
 /// - "emojiImageSet" - Emoji image set enum
 /// - "autoRename" - Auto rename flag
 /// - "textTracking" - Text tracking value
+/// - "textAlignVertical" - Vertical text alignment (Figma auto-layout)
+/// - "textAutoResize" - Text auto-resize behavior (Figma auto-layout)
 ///
 /// These fields contain text rendering configuration that is not needed for
 /// basic HTML/CSS text rendering.
@@ -60,6 +62,8 @@ fn transform_recursive(value: &mut JsonValue) -> Result<()> {
             map.remove("emojiImageSet");
             map.remove("autoRename");
             map.remove("textTracking");
+            map.remove("textAlignVertical");
+            map.remove("textAutoResize");
 
             // Recurse into all remaining values
             let keys: Vec<String> = map.keys().cloned().collect();
@@ -318,5 +322,35 @@ mod tests {
             tree["textData"]["characters"].as_str(),
             Some("Hello")
         );
+    }
+
+    #[test]
+    fn test_remove_text_align_vertical() {
+        let mut tree = json!({
+            "name": "Text",
+            "textAlignVertical": "TOP",
+            "fontSize": 16.0
+        });
+
+        remove_text_metadata_fields(&mut tree).unwrap();
+
+        assert!(tree.get("textAlignVertical").is_none());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("Text"));
+        assert_eq!(tree.get("fontSize").unwrap().as_f64(), Some(16.0));
+    }
+
+    #[test]
+    fn test_remove_text_auto_resize() {
+        let mut tree = json!({
+            "name": "Text",
+            "textAutoResize": "WIDTH_AND_HEIGHT",
+            "fontSize": 14.0
+        });
+
+        remove_text_metadata_fields(&mut tree).unwrap();
+
+        assert!(tree.get("textAutoResize").is_none());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("Text"));
+        assert_eq!(tree.get("fontSize").unwrap().as_f64(), Some(14.0));
     }
 }
