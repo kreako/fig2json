@@ -30,6 +30,10 @@ struct Cli {
     /// Verbose output for debugging
     #[arg(short, long)]
     verbose: bool,
+
+    /// Generate both transformed .json and raw .raw.json files (without transformations)
+    #[arg(long)]
+    raw: bool,
 }
 
 fn main() -> Result<()> {
@@ -65,7 +69,7 @@ fn main() -> Result<()> {
         }
 
         // ZIP extraction mode
-        handle_zip_mode(&bytes, extract_dir, cli.compact, cli.verbose)?;
+        handle_zip_mode(&bytes, extract_dir, cli.compact, cli.verbose, cli.raw)?;
     } else {
         // Regular .fig file mode
         if cli.verbose {
@@ -86,12 +90,12 @@ fn main() -> Result<()> {
         };
 
         // Write output
-        match cli.output {
+        match cli.output.as_ref() {
             Some(path) => {
                 if cli.verbose {
                     eprintln!("Writing output to: {}", path.display());
                 }
-                fs::write(&path, output)
+                fs::write(path, &output)
                     .with_context(|| format!("Failed to write output file: {}", path.display()))?;
                 if cli.verbose {
                     eprintln!("Done!");
@@ -101,13 +105,53 @@ fn main() -> Result<()> {
                 println!("{}", output);
             }
         }
+
+        // If --raw flag is set, also generate raw JSON file
+        if cli.raw {
+            if cli.verbose {
+                eprintln!("Converting to raw JSON...");
+            }
+
+            let raw_json = fig2json::convert_raw(&bytes).context("Failed to convert .fig file to raw JSON")?;
+
+            let raw_output = if cli.compact {
+                serde_json::to_string(&raw_json)?
+            } else {
+                serde_json::to_string_pretty(&raw_json)?
+            };
+
+            // Determine raw output path
+            let raw_path = match cli.output.as_ref() {
+                Some(path) => {
+                    // Derive .raw.json from output path
+                    let mut raw = path.clone();
+                    raw.set_extension("raw.json");
+                    raw
+                }
+                None => {
+                    // Derive from input path
+                    cli.input.with_extension("raw.json")
+                }
+            };
+
+            if cli.verbose {
+                eprintln!("Writing raw output to: {}", raw_path.display());
+            }
+
+            fs::write(&raw_path, raw_output)
+                .with_context(|| format!("Failed to write raw output file: {}", raw_path.display()))?;
+
+            if cli.verbose {
+                eprintln!("Raw JSON done!");
+            }
+        }
     }
 
     Ok(())
 }
 
 /// Handle ZIP extraction mode: extract all files and convert all .fig files found
-fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, compact: bool, verbose: bool) -> Result<()> {
+fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, compact: bool, verbose: bool, raw: bool) -> Result<()> {
     if verbose {
         eprintln!("ZIP file detected - extracting to: {}", extract_dir.display());
     }
@@ -167,6 +211,29 @@ fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, compact: bool, verbo
 
         if verbose {
             eprintln!("  → {}", output_path.strip_prefix(extract_dir).unwrap_or(&output_path).display());
+        }
+
+        // If --raw flag is set, also generate raw JSON file
+        if raw {
+            let raw_json = fig2json::convert_raw(&fig_bytes)
+                .with_context(|| format!("Failed to convert to raw JSON: {}", fig_path.display()))?;
+
+            let raw_output = if compact {
+                serde_json::to_string(&raw_json)?
+            } else {
+                serde_json::to_string_pretty(&raw_json)?
+            };
+
+            // Determine raw output path: same as .fig but with .raw.json extension
+            let raw_output_path = fig_path.with_extension("raw.json");
+
+            // Write raw JSON file
+            fs::write(&raw_output_path, raw_output)
+                .with_context(|| format!("Failed to write raw output: {}", raw_output_path.display()))?;
+
+            if verbose {
+                eprintln!("  → {}", raw_output_path.strip_prefix(extract_dir).unwrap_or(&raw_output_path).display());
+            }
         }
     }
 

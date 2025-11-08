@@ -224,3 +224,93 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
 
     Ok(output)
 }
+
+/// Convert a .fig file to raw JSON without transformations
+///
+/// This function is similar to `convert()` but stops before applying any transformations.
+/// It provides the raw Figma data structure without optimization for HTML/CSS conversion.
+///
+/// The raw output includes all Figma-specific fields and internal data structures that
+/// are typically removed or simplified in the standard conversion process.
+///
+/// # Arguments
+/// * `bytes` - Raw bytes from the .fig file
+///
+/// # Returns
+/// * `Ok(serde_json::Value)` - Raw JSON representation with full Figma data
+/// * `Err(FigError)` - If conversion fails at any stage
+///
+/// # Example
+/// ```no_run
+/// use fig2json::convert_raw;
+///
+/// let bytes = std::fs::read("example.fig").unwrap();
+/// let json = convert_raw(&bytes).unwrap();
+/// println!("{}", serde_json::to_string_pretty(&json).unwrap());
+/// ```
+pub fn convert_raw(bytes: &[u8]) -> Result<serde_json::Value> {
+    // 1. Detect and extract from ZIP if needed
+    let bytes = if parser::is_zip_container(bytes) {
+        parser::extract_from_zip(bytes)?
+    } else {
+        bytes.to_vec()
+    };
+
+    // 2. Detect file type (figma vs figjam)
+    let file_type = parser::detect_file_type(&bytes)?;
+
+    // 3. Extract chunks (version format)
+    let parsed = parser::extract_chunks(&bytes)?;
+
+    // 4. Decompress chunks
+    let schema_bytes = parser::decompress_chunk(parsed.schema_chunk().ok_or({
+        FigError::NotEnoughChunks {
+            expected: 1,
+            actual: 0,
+        }
+    })?)?;
+    let data_bytes = parser::decompress_chunk(parsed.data_chunk().ok_or({
+        FigError::NotEnoughChunks {
+            expected: 2,
+            actual: parsed.chunks.len(),
+        }
+    })?)?;
+
+    // 5. Decode with Kiwi schema
+    let json = schema::decode_fig_to_json(&schema_bytes, &data_bytes)?;
+
+    // 6. Extract nodeChanges and build tree structure
+    let node_changes = json
+        .get("nodeChanges")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| FigError::ZipError("No nodeChanges found in decoded data".to_string()))?
+        .clone();
+
+    let mut document = schema::build_tree(node_changes)?;
+
+    // 7. Extract and process blobs (convert to base64)
+    let blobs = json
+        .get("blobs")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| FigError::ZipError("No blobs found in decoded data".to_string()))?
+        .clone();
+
+    let processed_blobs = blobs::process_blobs(blobs)?;
+
+    // 8. Substitute blob references in document tree with parsed blob content
+    // This replaces fields like "commandsBlob: 5" with "commands: [parsed array]"
+    blobs::substitute_blobs(&mut document, processed_blobs.as_array().unwrap())?;
+
+    // Build final JSON output WITHOUT transformations
+    let output = serde_json::json!({
+        "version": parsed.version,
+        "fileType": match file_type {
+            FileType::Figma => "figma",
+            FileType::FigJam => "figjam",
+        },
+        "document": document,
+        "blobs": processed_blobs,
+    });
+
+    Ok(output)
+}
