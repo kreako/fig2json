@@ -63,7 +63,12 @@ pub use types::{FileType, ParsedFile};
 /// 21. Frame properties removal (remove frame-specific metadata)
 /// 22. Image metadata removal (remove image metadata fields)
 /// 23. Document properties removal (remove document-level properties)
-/// 24. Root blobs removal (remove now-unnecessary blobs array from output)
+/// 24. Empty derivedTextData removal (remove empty derivedTextData objects)
+/// 25. Default opacity removal (remove opacity: 1.0)
+/// 26. Default visible removal (remove visible: true)
+/// 27. Default rotation removal (remove rotation: 0.0)
+/// 28. Root metadata removal (remove version and fileType fields)
+/// 29. Root blobs removal (remove now-unnecessary blobs array from output)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -175,35 +180,47 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // 20. Remove layoutSize from derivedTextData (redundant with node size)
     schema::remove_derived_text_layout_size(&mut document)?;
 
-    // 21. Remove text metadata fields (text configuration metadata)
+    // 21. Remove empty derivedTextData objects (no useful information for HTML/CSS)
+    schema::remove_empty_derived_text_data(&mut document)?;
+
+    // 22. Remove text metadata fields (text configuration metadata)
     schema::remove_text_metadata_fields(&mut document)?;
 
-    // 22. Remove textData field (Figma-specific line metadata)
+    // 23. Remove textData field (Figma-specific line metadata)
     schema::remove_text_data_fields(&mut document)?;
 
-    // 23. Remove default text properties (letterSpacing 0%, lineHeight 100%)
+    // 24. Remove default text properties (letterSpacing 0%, lineHeight 100%)
     schema::remove_default_text_properties(&mut document)?;
 
-    // 24. Remove empty postscript from fontName objects
+    // 25. Remove empty postscript from fontName objects
     schema::remove_empty_font_postscript(&mut document)?;
 
-    // 25. Remove stroke properties (CSS-incompatible stroke properties)
+    // 26. Remove stroke properties (CSS-incompatible stroke properties)
     schema::remove_stroke_properties(&mut document)?;
 
-    // 26. Remove border weight fields (CSS-incompatible individual border weights)
+    // 27. Remove border weight fields (CSS-incompatible individual border weights)
     schema::remove_border_weights(&mut document)?;
 
-    // 27. Remove frame properties (frame-specific metadata)
+    // 28. Remove frame properties (frame-specific metadata)
     schema::remove_frame_properties(&mut document)?;
 
-    // 28. Remove background properties (backgroundEnabled, backgroundOpacity)
+    // 29. Remove background properties (backgroundEnabled, backgroundOpacity)
     schema::remove_background_properties(&mut document)?;
 
-    // 29. Remove image metadata fields (image metadata, including imageThumbnail)
+    // 30. Remove image metadata fields (image metadata, including imageThumbnail)
     schema::remove_image_metadata_fields(&mut document)?;
 
-    // 30. Remove internal-only nodes (filter out internalOnly: true nodes)
+    // 31. Remove internal-only nodes (filter out internalOnly: true nodes)
     schema::remove_internal_only_nodes(&mut document)?;
+
+    // 32. Remove default opacity values (1.0 is the default)
+    schema::remove_default_opacity(&mut document)?;
+
+    // 33. Remove default visible values (true is the default)
+    schema::remove_default_visible(&mut document)?;
+
+    // 34. Remove default rotation values (0.0 is the default)
+    schema::remove_default_rotation(&mut document)?;
 
     // Build final JSON output
     let mut output = serde_json::json!({
@@ -216,10 +233,13 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         "blobs": processed_blobs,
     });
 
-    // 31. Remove document properties (document-level properties)
+    // 35. Remove document properties (document-level properties)
     schema::remove_document_properties(&mut output)?;
 
-    // 32. Remove root-level blobs array (no longer needed after substitution)
+    // 36. Remove root-level metadata fields (version and fileType)
+    schema::remove_root_metadata(&mut output)?;
+
+    // 37. Remove root-level blobs array (no longer needed after substitution)
     schema::remove_root_blobs(&mut output)?;
 
     Ok(output)

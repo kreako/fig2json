@@ -27,14 +27,23 @@
 /// - `background_properties_removal`: Remove background metadata fields
 /// - `internal_only_nodes_removal`: Filter out internal-only nodes
 /// - `derived_text_layout_size_removal`: Remove redundant layoutSize from derivedTextData
+/// - `empty_derived_text_data_removal`: Remove empty derivedTextData objects
+/// - `default_opacity_removal`: Remove default opacity values (1.0)
+/// - `default_visible_removal`: Remove default visible values (true)
+/// - `default_rotation_removal`: Remove default rotation values (0.0)
+/// - `root_metadata_removal`: Remove root-level version and fileType fields
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
 pub mod color_to_css;
 pub mod default_blend_mode_removal;
+pub mod default_opacity_removal;
+pub mod default_rotation_removal;
 pub mod default_text_properties_removal;
+pub mod default_visible_removal;
 pub mod derived_text_layout_size_removal;
 pub mod document_properties_removal;
+pub mod empty_derived_text_data_removal;
 pub mod edit_info_removal;
 pub mod empty_font_postscript_removal;
 pub mod enum_simplification;
@@ -46,6 +55,7 @@ pub mod image_metadata_removal;
 pub mod internal_only_nodes_removal;
 pub mod matrix_to_css;
 pub mod phase_removal;
+pub mod root_metadata_removal;
 pub mod stroke_properties_removal;
 pub mod text_data_removal;
 pub mod text_glyphs_removal;
@@ -58,9 +68,13 @@ pub use blobs_removal::remove_root_blobs;
 pub use border_weights_removal::remove_border_weights;
 pub use color_to_css::transform_colors_to_css;
 pub use default_blend_mode_removal::remove_default_blend_mode;
+pub use default_opacity_removal::remove_default_opacity;
+pub use default_rotation_removal::remove_default_rotation;
 pub use default_text_properties_removal::remove_default_text_properties;
+pub use default_visible_removal::remove_default_visible;
 pub use derived_text_layout_size_removal::remove_derived_text_layout_size;
 pub use document_properties_removal::remove_document_properties;
+pub use empty_derived_text_data_removal::remove_empty_derived_text_data;
 pub use edit_info_removal::remove_edit_info_fields;
 pub use empty_font_postscript_removal::remove_empty_font_postscript;
 pub use enum_simplification::simplify_enums;
@@ -72,6 +86,7 @@ pub use image_metadata_removal::remove_image_metadata_fields;
 pub use internal_only_nodes_removal::remove_internal_only_nodes;
 pub use matrix_to_css::transform_matrix_to_css;
 pub use phase_removal::remove_phase_fields;
+pub use root_metadata_removal::remove_root_metadata;
 pub use stroke_properties_removal::remove_stroke_properties;
 pub use text_data_removal::remove_text_data_fields;
 pub use text_glyphs_removal::remove_text_glyphs;
