@@ -69,6 +69,15 @@ pub use types::{FileType, ParsedFile};
 /// 27. Default rotation removal (remove rotation: 0.0)
 /// 28. Root metadata removal (remove version and fileType fields)
 /// 29. Root blobs removal (remove now-unnecessary blobs array from output)
+/// 30. Symbol data removal (remove Figma component instance metadata)
+/// 31. Derived symbol data removal (remove derived symbol data and layout version)
+/// 32. GUID path removal (remove internal Figma guidPath references)
+/// 33. User facing version removal (remove Figma version strings)
+/// 34. Style ID removal (remove Figma shared style references)
+/// 35. Export settings removal (remove asset export configurations)
+/// 36. Plugin data removal (remove Figma plugin storage data)
+/// 37. Component properties removal (remove component property assignments)
+/// 38. Rectangle corner radii independent removal (remove corner radii independent flag)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -241,6 +250,33 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
 
     // 37. Remove root-level blobs array (no longer needed after substitution)
     schema::remove_root_blobs(&mut output)?;
+
+    // 38. Remove symbol data (Figma component instance metadata)
+    schema::remove_symbol_data(&mut output)?;
+
+    // 39. Remove derived symbol data (derived symbol data and layout version)
+    schema::remove_derived_symbol_data(&mut output)?;
+
+    // 40. Remove guid paths (internal Figma guidPath references)
+    schema::remove_guid_paths(&mut output)?;
+
+    // 41. Remove user facing versions (Figma version strings)
+    schema::remove_user_facing_versions(&mut output)?;
+
+    // 42. Remove style IDs (Figma shared style references)
+    schema::remove_style_ids(&mut output)?;
+
+    // 43. Remove export settings (asset export configurations)
+    schema::remove_export_settings(&mut output)?;
+
+    // 44. Remove plugin data (Figma plugin storage data)
+    schema::remove_plugin_data(&mut output)?;
+
+    // 45. Remove component properties (component property assignments)
+    schema::remove_component_properties(&mut output)?;
+
+    // 46. Remove rectangle corner radii independent (corner radii independent flag)
+    schema::remove_rectangle_corner_radii_independent(&mut output)?;
 
     Ok(output)
 }

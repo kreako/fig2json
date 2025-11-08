@@ -32,63 +32,90 @@
 /// - `default_visible_removal`: Remove default visible values (true)
 /// - `default_rotation_removal`: Remove default rotation values (0.0)
 /// - `root_metadata_removal`: Remove root-level version and fileType fields
+/// - `symbol_data_removal`: Remove Figma component instance metadata
+/// - `derived_symbol_data_removal`: Remove derived symbol data and layout version
+/// - `guid_path_removal`: Remove internal Figma guidPath references
+/// - `user_facing_version_removal`: Remove Figma version strings
+/// - `style_id_removal`: Remove Figma shared style references
+/// - `export_settings_removal`: Remove asset export configurations
+/// - `plugin_data_removal`: Remove Figma plugin storage data
+/// - `component_properties_removal`: Remove component property assignments
+/// - `rectangle_corner_radii_independent_removal`: Remove corner radii independent flag
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
 pub mod color_to_css;
+pub mod component_properties_removal;
 pub mod default_blend_mode_removal;
 pub mod default_opacity_removal;
 pub mod default_rotation_removal;
 pub mod default_text_properties_removal;
 pub mod default_visible_removal;
+pub mod derived_symbol_data_removal;
 pub mod derived_text_layout_size_removal;
 pub mod document_properties_removal;
 pub mod empty_derived_text_data_removal;
 pub mod edit_info_removal;
 pub mod empty_font_postscript_removal;
 pub mod enum_simplification;
+pub mod export_settings_removal;
 pub mod frame_properties_removal;
 pub mod geometry_removal;
+pub mod guid_path_removal;
 pub mod guid_removal;
 pub mod image_hash;
 pub mod image_metadata_removal;
 pub mod internal_only_nodes_removal;
 pub mod matrix_to_css;
 pub mod phase_removal;
+pub mod plugin_data_removal;
+pub mod rectangle_corner_radii_independent_removal;
 pub mod root_metadata_removal;
 pub mod stroke_properties_removal;
+pub mod style_id_removal;
+pub mod symbol_data_removal;
 pub mod text_data_removal;
 pub mod text_glyphs_removal;
 pub mod text_layout_removal;
 pub mod text_metadata_removal;
+pub mod user_facing_version_removal;
 
 // Re-export commonly used functions
 pub use background_properties_removal::remove_background_properties;
 pub use blobs_removal::remove_root_blobs;
 pub use border_weights_removal::remove_border_weights;
 pub use color_to_css::transform_colors_to_css;
+pub use component_properties_removal::remove_component_properties;
 pub use default_blend_mode_removal::remove_default_blend_mode;
 pub use default_opacity_removal::remove_default_opacity;
 pub use default_rotation_removal::remove_default_rotation;
 pub use default_text_properties_removal::remove_default_text_properties;
 pub use default_visible_removal::remove_default_visible;
+pub use derived_symbol_data_removal::remove_derived_symbol_data;
 pub use derived_text_layout_size_removal::remove_derived_text_layout_size;
 pub use document_properties_removal::remove_document_properties;
 pub use empty_derived_text_data_removal::remove_empty_derived_text_data;
 pub use edit_info_removal::remove_edit_info_fields;
 pub use empty_font_postscript_removal::remove_empty_font_postscript;
 pub use enum_simplification::simplify_enums;
+pub use export_settings_removal::remove_export_settings;
 pub use frame_properties_removal::remove_frame_properties;
 pub use geometry_removal::remove_geometry_fields;
+pub use guid_path_removal::remove_guid_paths;
 pub use guid_removal::remove_guid_fields;
 pub use image_hash::transform_image_hashes;
 pub use image_metadata_removal::remove_image_metadata_fields;
 pub use internal_only_nodes_removal::remove_internal_only_nodes;
 pub use matrix_to_css::transform_matrix_to_css;
 pub use phase_removal::remove_phase_fields;
+pub use plugin_data_removal::remove_plugin_data;
+pub use rectangle_corner_radii_independent_removal::remove_rectangle_corner_radii_independent;
 pub use root_metadata_removal::remove_root_metadata;
 pub use stroke_properties_removal::remove_stroke_properties;
+pub use style_id_removal::remove_style_ids;
+pub use symbol_data_removal::remove_symbol_data;
 pub use text_data_removal::remove_text_data_fields;
 pub use text_glyphs_removal::remove_text_glyphs;
 pub use text_layout_removal::remove_text_layout_fields;
 pub use text_metadata_removal::remove_text_metadata_fields;
+pub use user_facing_version_removal::remove_user_facing_versions;

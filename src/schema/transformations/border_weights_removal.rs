@@ -8,6 +8,7 @@ use serde_json::Value as JsonValue;
 /// - "borderBottomWeight" - Bottom border weight
 /// - "borderLeftWeight" - Left border weight
 /// - "borderRightWeight" - Right border weight
+/// - "borderStrokeWeightsIndependent" - Flag indicating independent border weights
 ///
 /// These fields allow per-side border weights in Figma, but standard HTML/CSS
 /// uses uniform borders. For HTML/CSS rendering, these detailed border weights
@@ -30,6 +31,7 @@ use serde_json::Value as JsonValue;
 ///     "borderBottomWeight": 1.0,
 ///     "borderLeftWeight": 1.0,
 ///     "borderRightWeight": 1.0,
+///     "borderStrokeWeightsIndependent": true,
 ///     "visible": true
 /// });
 /// remove_border_weights(&mut tree).unwrap();
@@ -48,6 +50,7 @@ fn transform_recursive(value: &mut JsonValue) -> Result<()> {
             map.remove("borderBottomWeight");
             map.remove("borderLeftWeight");
             map.remove("borderRightWeight");
+            map.remove("borderStrokeWeightsIndependent");
 
             // Recurse into all remaining values
             let keys: Vec<String> = map.keys().cloned().collect();
@@ -254,5 +257,50 @@ mod tests {
         assert!(tree.get("borderBottomWeight").is_none());
         assert!(tree.get("borderLeftWeight").is_none());
         assert!(tree.get("borderRightWeight").is_none());
+    }
+
+    #[test]
+    fn test_remove_border_stroke_weights_independent() {
+        let mut tree = json!({
+            "name": "Rectangle",
+            "borderStrokeWeightsIndependent": true,
+            "borderTopWeight": 1.0,
+            "borderBottomWeight": 2.0,
+            "visible": true
+        });
+
+        remove_border_weights(&mut tree).unwrap();
+
+        assert!(tree.get("borderStrokeWeightsIndependent").is_none());
+        assert!(tree.get("borderTopWeight").is_none());
+        assert!(tree.get("borderBottomWeight").is_none());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("Rectangle"));
+        assert_eq!(tree.get("visible").unwrap().as_bool(), Some(true));
+    }
+
+    #[test]
+    fn test_remove_border_stroke_weights_independent_nested() {
+        let mut tree = json!({
+            "children": [
+                {
+                    "name": "Child1",
+                    "borderStrokeWeightsIndependent": true,
+                    "borderTopWeight": 1.0
+                },
+                {
+                    "name": "Child2",
+                    "borderStrokeWeightsIndependent": false
+                }
+            ]
+        });
+
+        remove_border_weights(&mut tree).unwrap();
+
+        assert!(tree["children"][0].get("borderStrokeWeightsIndependent").is_none());
+        assert!(tree["children"][0].get("borderTopWeight").is_none());
+        assert_eq!(tree["children"][0]["name"].as_str(), Some("Child1"));
+
+        assert!(tree["children"][1].get("borderStrokeWeightsIndependent").is_none());
+        assert_eq!(tree["children"][1]["name"].as_str(), Some("Child2"));
     }
 }
