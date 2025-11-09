@@ -19,7 +19,6 @@
 /// - `image_metadata_removal`: Remove image metadata fields
 /// - `document_properties_removal`: Remove document-level properties
 /// - `enum_simplification`: Simplify verbose enum objects to simple strings
-/// - `text_data_removal`: Remove Figma-specific textData field
 /// - `default_text_properties_removal`: Remove default text property values
 /// - `empty_font_postscript_removal`: Remove empty postscript from fontName
 /// - `border_weights_removal`: Remove individual border weight fields
@@ -32,14 +31,11 @@
 /// - `default_visible_removal`: Remove default visible values (true)
 /// - `default_rotation_removal`: Remove default rotation values (0.0)
 /// - `root_metadata_removal`: Remove root-level version and fileType fields
-/// - `symbol_data_removal`: Remove Figma component instance metadata
-/// - `derived_symbol_data_removal`: Remove derived symbol data and layout version
 /// - `guid_path_removal`: Remove internal Figma guidPath references
 /// - `user_facing_version_removal`: Remove Figma version strings
 /// - `style_id_removal`: Remove Figma shared style references
 /// - `export_settings_removal`: Remove asset export configurations
 /// - `plugin_data_removal`: Remove Figma plugin storage data
-/// - `component_properties_removal`: Remove component property assignments
 /// - `rectangle_corner_radii_independent_removal`: Remove corner radii independent flag
 /// - `constraint_properties_removal`: Remove Figma auto-layout constraint properties
 /// - `scroll_resize_properties_removal`: Remove Figma scroll and resize behavior properties
@@ -59,7 +55,6 @@ pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
 pub mod color_to_css;
-pub mod component_properties_removal;
 pub mod constraint_properties_removal;
 pub mod corner_smoothing_removal;
 pub mod default_blend_mode_removal;
@@ -67,7 +62,6 @@ pub mod default_opacity_removal;
 pub mod default_rotation_removal;
 pub mod default_text_properties_removal;
 pub mod default_visible_removal;
-pub mod derived_symbol_data_removal;
 pub mod derived_text_layout_size_removal;
 pub mod detached_symbol_id_removal;
 pub mod document_properties_removal;
@@ -99,8 +93,6 @@ pub mod stack_child_properties_removal;
 pub mod stack_sizing_properties_removal;
 pub mod stroke_properties_removal;
 pub mod style_id_removal;
-pub mod symbol_data_removal;
-pub mod text_data_removal;
 pub mod text_glyphs_removal;
 pub mod text_layout_removal;
 pub mod text_metadata_removal;
@@ -113,7 +105,6 @@ pub use background_properties_removal::remove_background_properties;
 pub use blobs_removal::remove_root_blobs;
 pub use border_weights_removal::remove_border_weights;
 pub use color_to_css::transform_colors_to_css;
-pub use component_properties_removal::remove_component_properties;
 pub use constraint_properties_removal::remove_constraint_properties;
 pub use corner_smoothing_removal::remove_corner_smoothing;
 pub use default_blend_mode_removal::remove_default_blend_mode;
@@ -121,7 +112,6 @@ pub use default_opacity_removal::remove_default_opacity;
 pub use default_rotation_removal::remove_default_rotation;
 pub use default_text_properties_removal::remove_default_text_properties;
 pub use default_visible_removal::remove_default_visible;
-pub use derived_symbol_data_removal::remove_derived_symbol_data;
 pub use derived_text_layout_size_removal::remove_derived_text_layout_size;
 pub use detached_symbol_id_removal::remove_detached_symbol_id;
 pub use document_properties_removal::remove_document_properties;
@@ -153,8 +143,6 @@ pub use stack_child_properties_removal::remove_stack_child_properties;
 pub use stack_sizing_properties_removal::remove_stack_sizing_properties;
 pub use stroke_properties_removal::remove_stroke_properties;
 pub use style_id_removal::remove_style_ids;
-pub use symbol_data_removal::remove_symbol_data;
-pub use text_data_removal::remove_text_data_fields;
 pub use text_glyphs_removal::remove_text_glyphs;
 pub use text_layout_removal::remove_text_layout_fields;
 pub use text_metadata_removal::remove_text_metadata_fields;
