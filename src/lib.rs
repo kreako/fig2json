@@ -78,6 +78,13 @@ pub use types::{FileType, ParsedFile};
 /// 36. Plugin data removal (remove Figma plugin storage data)
 /// 37. Component properties removal (remove component property assignments)
 /// 38. Rectangle corner radii independent removal (remove corner radii independent flag)
+/// 39. Constraint properties removal (remove Figma auto-layout constraint properties)
+/// 40. Scroll/resize properties removal (remove Figma scroll and resize behavior properties)
+/// 41. Layout aids removal (remove design-time layout aids like guides and layoutGrids)
+/// 42. Detached symbol ID removal (remove Figma component instance metadata)
+/// 43. Redundant corner radii removal (remove individual corner radius fields when general cornerRadius exists)
+/// 44. Corner smoothing removal (remove Figma's corner smoothing property)
+/// 45. Invisible paints removal (remove invisible paints from fillPaints and strokePaints arrays)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -277,6 +284,27 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
 
     // 46. Remove rectangle corner radii independent (corner radii independent flag)
     schema::remove_rectangle_corner_radii_independent(&mut output)?;
+
+    // 47. Remove constraint properties (horizontalConstraint, verticalConstraint)
+    schema::remove_constraint_properties(&mut output)?;
+
+    // 48. Remove scroll/resize properties (scrollBehavior, resizeToFit)
+    schema::remove_scroll_resize_properties(&mut output)?;
+
+    // 49. Remove layout aids (guides, layoutGrids)
+    schema::remove_layout_aids(&mut output)?;
+
+    // 50. Remove detached symbol ID (Figma component instance metadata)
+    schema::remove_detached_symbol_id(&mut output)?;
+
+    // 51. Remove redundant corner radii (individual corner radius fields when cornerRadius exists)
+    schema::remove_redundant_corner_radii(&mut output)?;
+
+    // 52. Remove corner smoothing (Figma's corner smoothing property)
+    schema::remove_corner_smoothing(&mut output)?;
+
+    // 53. Remove invisible paints (filter out paints with visible: false)
+    schema::remove_invisible_paints(&mut output)?;
 
     Ok(output)
 }

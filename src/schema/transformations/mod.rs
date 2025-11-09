@@ -41,11 +41,20 @@
 /// - `plugin_data_removal`: Remove Figma plugin storage data
 /// - `component_properties_removal`: Remove component property assignments
 /// - `rectangle_corner_radii_independent_removal`: Remove corner radii independent flag
+/// - `constraint_properties_removal`: Remove Figma auto-layout constraint properties
+/// - `scroll_resize_properties_removal`: Remove Figma scroll and resize behavior properties
+/// - `layout_aids_removal`: Remove design-time layout aids (guides, layoutGrids)
+/// - `detached_symbol_id_removal`: Remove Figma component instance metadata
+/// - `redundant_corner_radii_removal`: Remove individual corner radius fields when general cornerRadius exists
+/// - `corner_smoothing_removal`: Remove Figma's corner smoothing property
+/// - `invisible_paints_removal`: Remove invisible paints from fillPaints and strokePaints arrays
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
 pub mod color_to_css;
 pub mod component_properties_removal;
+pub mod constraint_properties_removal;
+pub mod corner_smoothing_removal;
 pub mod default_blend_mode_removal;
 pub mod default_opacity_removal;
 pub mod default_rotation_removal;
@@ -53,6 +62,7 @@ pub mod default_text_properties_removal;
 pub mod default_visible_removal;
 pub mod derived_symbol_data_removal;
 pub mod derived_text_layout_size_removal;
+pub mod detached_symbol_id_removal;
 pub mod document_properties_removal;
 pub mod empty_derived_text_data_removal;
 pub mod edit_info_removal;
@@ -66,11 +76,15 @@ pub mod guid_removal;
 pub mod image_hash;
 pub mod image_metadata_removal;
 pub mod internal_only_nodes_removal;
+pub mod invisible_paints_removal;
+pub mod layout_aids_removal;
 pub mod matrix_to_css;
 pub mod phase_removal;
 pub mod plugin_data_removal;
 pub mod rectangle_corner_radii_independent_removal;
+pub mod redundant_corner_radii_removal;
 pub mod root_metadata_removal;
+pub mod scroll_resize_properties_removal;
 pub mod stroke_properties_removal;
 pub mod style_id_removal;
 pub mod symbol_data_removal;
@@ -86,6 +100,8 @@ pub use blobs_removal::remove_root_blobs;
 pub use border_weights_removal::remove_border_weights;
 pub use color_to_css::transform_colors_to_css;
 pub use component_properties_removal::remove_component_properties;
+pub use constraint_properties_removal::remove_constraint_properties;
+pub use corner_smoothing_removal::remove_corner_smoothing;
 pub use default_blend_mode_removal::remove_default_blend_mode;
 pub use default_opacity_removal::remove_default_opacity;
 pub use default_rotation_removal::remove_default_rotation;
@@ -93,6 +109,7 @@ pub use default_text_properties_removal::remove_default_text_properties;
 pub use default_visible_removal::remove_default_visible;
 pub use derived_symbol_data_removal::remove_derived_symbol_data;
 pub use derived_text_layout_size_removal::remove_derived_text_layout_size;
+pub use detached_symbol_id_removal::remove_detached_symbol_id;
 pub use document_properties_removal::remove_document_properties;
 pub use empty_derived_text_data_removal::remove_empty_derived_text_data;
 pub use edit_info_removal::remove_edit_info_fields;
@@ -106,11 +123,15 @@ pub use guid_removal::remove_guid_fields;
 pub use image_hash::transform_image_hashes;
 pub use image_metadata_removal::remove_image_metadata_fields;
 pub use internal_only_nodes_removal::remove_internal_only_nodes;
+pub use invisible_paints_removal::remove_invisible_paints;
+pub use layout_aids_removal::remove_layout_aids;
 pub use matrix_to_css::transform_matrix_to_css;
 pub use phase_removal::remove_phase_fields;
 pub use plugin_data_removal::remove_plugin_data;
 pub use rectangle_corner_radii_independent_removal::remove_rectangle_corner_radii_independent;
+pub use redundant_corner_radii_removal::remove_redundant_corner_radii;
 pub use root_metadata_removal::remove_root_metadata;
+pub use scroll_resize_properties_removal::remove_scroll_resize_properties;
 pub use stroke_properties_removal::remove_stroke_properties;
 pub use style_id_removal::remove_style_ids;
 pub use symbol_data_removal::remove_symbol_data;
