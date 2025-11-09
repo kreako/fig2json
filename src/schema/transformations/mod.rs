@@ -27,6 +27,7 @@
 /// - `internal_only_nodes_removal`: Filter out internal-only nodes
 /// - `derived_text_layout_size_removal`: Remove redundant layoutSize from derivedTextData
 /// - `empty_derived_text_data_removal`: Remove empty derivedTextData objects
+/// - `empty_objects_removal`: Remove empty objects {} from the JSON tree
 /// - `default_opacity_removal`: Remove default opacity values (1.0)
 /// - `default_visible_removal`: Remove default visible values (true)
 /// - `default_rotation_removal`: Remove default rotation values (0.0)
@@ -69,6 +70,7 @@ pub mod empty_derived_text_data_removal;
 pub mod empty_paint_arrays_removal;
 pub mod edit_info_removal;
 pub mod empty_font_postscript_removal;
+pub mod empty_objects_removal;
 pub mod enum_simplification;
 pub mod export_settings_removal;
 pub mod frame_properties_removal;
@@ -119,6 +121,7 @@ pub use empty_derived_text_data_removal::remove_empty_derived_text_data;
 pub use empty_paint_arrays_removal::remove_empty_paint_arrays;
 pub use edit_info_removal::remove_edit_info_fields;
 pub use empty_font_postscript_removal::remove_empty_font_postscript;
+pub use empty_objects_removal::remove_empty_objects;
 pub use enum_simplification::simplify_enums;
 pub use export_settings_removal::remove_export_settings;
 pub use frame_properties_removal::remove_frame_properties;

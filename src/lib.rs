@@ -93,6 +93,7 @@ pub use types::{FileType, ParsedFile};
 /// 51. Stack sizing properties removal (remove stackCounterSizing and stackPrimarySizing)
 /// 52. Stack alignment properties removal (remove stackCounterAlignItems and stackPrimaryAlignItems)
 /// 53. Type removal (remove type field from all nodes)
+/// 54. Empty objects removal (remove empty objects {} from the JSON tree)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -322,6 +323,9 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
 
     // 56. Remove type field from all nodes
     schema::remove_type(&mut output)?;
+
+    // 57. Remove empty objects {} from the JSON tree
+    schema::remove_empty_objects(&mut output)?;
 
     Ok(output)
 }
