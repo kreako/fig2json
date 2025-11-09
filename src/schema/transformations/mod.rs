@@ -48,6 +48,8 @@
 /// - `redundant_corner_radii_removal`: Remove individual corner radius fields when general cornerRadius exists
 /// - `corner_smoothing_removal`: Remove Figma's corner smoothing property
 /// - `invisible_paints_removal`: Remove invisible paints from fillPaints and strokePaints arrays
+/// - `stack_child_properties_removal`: Remove Figma auto-layout child properties (stackChildAlignSelf, stackChildPrimaryGrow)
+/// - `redundant_padding_removal`: Remove redundant padding properties when general axis-based padding exists
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
@@ -83,8 +85,10 @@ pub mod phase_removal;
 pub mod plugin_data_removal;
 pub mod rectangle_corner_radii_independent_removal;
 pub mod redundant_corner_radii_removal;
+pub mod redundant_padding_removal;
 pub mod root_metadata_removal;
 pub mod scroll_resize_properties_removal;
+pub mod stack_child_properties_removal;
 pub mod stroke_properties_removal;
 pub mod style_id_removal;
 pub mod symbol_data_removal;
@@ -130,8 +134,10 @@ pub use phase_removal::remove_phase_fields;
 pub use plugin_data_removal::remove_plugin_data;
 pub use rectangle_corner_radii_independent_removal::remove_rectangle_corner_radii_independent;
 pub use redundant_corner_radii_removal::remove_redundant_corner_radii;
+pub use redundant_padding_removal::remove_redundant_padding;
 pub use root_metadata_removal::remove_root_metadata;
 pub use scroll_resize_properties_removal::remove_scroll_resize_properties;
+pub use stack_child_properties_removal::remove_stack_child_properties;
 pub use stroke_properties_removal::remove_stroke_properties;
 pub use style_id_removal::remove_style_ids;
 pub use symbol_data_removal::remove_symbol_data;

@@ -10,6 +10,8 @@ use serde_json::Value as JsonValue;
 /// - "textDecorationSkipInk" - Text decoration skip ink setting
 /// - "fontVariantCommonLigatures" - Font ligature setting
 /// - "fontVariantContextualLigatures" - Contextual ligature setting
+/// - "fontVariantNumericFigure" - Numeric figure variant (LINING, OLDSTYLE, etc.)
+/// - "fontVariantNumericSpacing" - Numeric spacing variant (PROPORTIONAL, TABULAR, etc.)
 /// - "fontVariations" - Font variation array
 /// - "fontVersion" - Font version string
 /// - "emojiImageSet" - Emoji image set enum
@@ -57,6 +59,8 @@ fn transform_recursive(value: &mut JsonValue) -> Result<()> {
             map.remove("textDecorationSkipInk");
             map.remove("fontVariantCommonLigatures");
             map.remove("fontVariantContextualLigatures");
+            map.remove("fontVariantNumericFigure");
+            map.remove("fontVariantNumericSpacing");
             map.remove("fontVariations");
             map.remove("fontVersion");
             map.remove("emojiImageSet");
@@ -130,6 +134,8 @@ mod tests {
             "name": "Text",
             "fontVariantCommonLigatures": true,
             "fontVariantContextualLigatures": true,
+            "fontVariantNumericFigure": "LINING",
+            "fontVariantNumericSpacing": "PROPORTIONAL",
             "fontVariations": [],
             "fontVersion": "1.0",
             "fontSize": 14.0
@@ -139,6 +145,8 @@ mod tests {
 
         assert!(tree.get("fontVariantCommonLigatures").is_none());
         assert!(tree.get("fontVariantContextualLigatures").is_none());
+        assert!(tree.get("fontVariantNumericFigure").is_none());
+        assert!(tree.get("fontVariantNumericSpacing").is_none());
         assert!(tree.get("fontVariations").is_none());
         assert!(tree.get("fontVersion").is_none());
         assert_eq!(tree.get("name").unwrap().as_str(), Some("Text"));
@@ -352,5 +360,27 @@ mod tests {
         assert!(tree.get("textAutoResize").is_none());
         assert_eq!(tree.get("name").unwrap().as_str(), Some("Text"));
         assert_eq!(tree.get("fontSize").unwrap().as_f64(), Some(14.0));
+    }
+
+    #[test]
+    fn test_remove_font_variant_numeric_properties() {
+        let mut tree = json!({
+            "name": "Members without roles",
+            "fontVariantNumericFigure": "LINING",
+            "fontVariantNumericSpacing": "PROPORTIONAL",
+            "fontSize": 14.0,
+            "fontName": {
+                "family": "Inter",
+                "style": "Medium"
+            }
+        });
+
+        remove_text_metadata_fields(&mut tree).unwrap();
+
+        assert!(tree.get("fontVariantNumericFigure").is_none());
+        assert!(tree.get("fontVariantNumericSpacing").is_none());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("Members without roles"));
+        assert_eq!(tree.get("fontSize").unwrap().as_f64(), Some(14.0));
+        assert!(tree.get("fontName").is_some());
     }
 }
