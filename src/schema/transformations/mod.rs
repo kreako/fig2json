@@ -50,6 +50,11 @@
 /// - `invisible_paints_removal`: Remove invisible paints from fillPaints and strokePaints arrays
 /// - `stack_child_properties_removal`: Remove Figma auto-layout child properties (stackChildAlignSelf, stackChildPrimaryGrow)
 /// - `redundant_padding_removal`: Remove redundant padding properties when general axis-based padding exists
+/// - `stack_sizing_properties_removal`: Remove Figma auto-layout sizing properties (stackCounterSizing, stackPrimarySizing)
+/// - `stack_align_items_removal`: Remove Figma auto-layout alignment properties (stackCounterAlignItems, stackPrimaryAlignItems)
+/// - `text_properties_simplification`: Simplify verbose letterSpacing/lineHeight structures to CSS-ready strings
+/// - `type_removal`: Remove type field from all nodes
+/// - `empty_paint_arrays_removal`: Remove empty fillPaints and strokePaints arrays
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
@@ -67,6 +72,7 @@ pub mod derived_text_layout_size_removal;
 pub mod detached_symbol_id_removal;
 pub mod document_properties_removal;
 pub mod empty_derived_text_data_removal;
+pub mod empty_paint_arrays_removal;
 pub mod edit_info_removal;
 pub mod empty_font_postscript_removal;
 pub mod enum_simplification;
@@ -88,7 +94,9 @@ pub mod redundant_corner_radii_removal;
 pub mod redundant_padding_removal;
 pub mod root_metadata_removal;
 pub mod scroll_resize_properties_removal;
+pub mod stack_align_items_removal;
 pub mod stack_child_properties_removal;
+pub mod stack_sizing_properties_removal;
 pub mod stroke_properties_removal;
 pub mod style_id_removal;
 pub mod symbol_data_removal;
@@ -96,6 +104,8 @@ pub mod text_data_removal;
 pub mod text_glyphs_removal;
 pub mod text_layout_removal;
 pub mod text_metadata_removal;
+pub mod text_properties_simplification;
+pub mod type_removal;
 pub mod user_facing_version_removal;
 
 // Re-export commonly used functions
@@ -116,6 +126,7 @@ pub use derived_text_layout_size_removal::remove_derived_text_layout_size;
 pub use detached_symbol_id_removal::remove_detached_symbol_id;
 pub use document_properties_removal::remove_document_properties;
 pub use empty_derived_text_data_removal::remove_empty_derived_text_data;
+pub use empty_paint_arrays_removal::remove_empty_paint_arrays;
 pub use edit_info_removal::remove_edit_info_fields;
 pub use empty_font_postscript_removal::remove_empty_font_postscript;
 pub use enum_simplification::simplify_enums;
@@ -137,7 +148,9 @@ pub use redundant_corner_radii_removal::remove_redundant_corner_radii;
 pub use redundant_padding_removal::remove_redundant_padding;
 pub use root_metadata_removal::remove_root_metadata;
 pub use scroll_resize_properties_removal::remove_scroll_resize_properties;
+pub use stack_align_items_removal::remove_stack_align_items;
 pub use stack_child_properties_removal::remove_stack_child_properties;
+pub use stack_sizing_properties_removal::remove_stack_sizing_properties;
 pub use stroke_properties_removal::remove_stroke_properties;
 pub use style_id_removal::remove_style_ids;
 pub use symbol_data_removal::remove_symbol_data;
@@ -145,4 +158,6 @@ pub use text_data_removal::remove_text_data_fields;
 pub use text_glyphs_removal::remove_text_glyphs;
 pub use text_layout_removal::remove_text_layout_fields;
 pub use text_metadata_removal::remove_text_metadata_fields;
+pub use text_properties_simplification::simplify_text_properties;
+pub use type_removal::remove_type;
 pub use user_facing_version_removal::remove_user_facing_versions;

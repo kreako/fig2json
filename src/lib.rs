@@ -59,32 +59,44 @@ pub use types::{FileType, ParsedFile};
 /// 17. Geometry removal (remove detailed path commands)
 /// 18. Text layout removal (remove detailed text layout data)
 /// 19. Text metadata removal (remove text configuration metadata)
-/// 20. Stroke properties removal (remove CSS-incompatible stroke properties)
-/// 21. Frame properties removal (remove frame-specific metadata)
-/// 22. Image metadata removal (remove image metadata fields)
-/// 23. Document properties removal (remove document-level properties)
-/// 24. Empty derivedTextData removal (remove empty derivedTextData objects)
-/// 25. Default opacity removal (remove opacity: 1.0)
-/// 26. Default visible removal (remove visible: true)
-/// 27. Default rotation removal (remove rotation: 0.0)
-/// 28. Root metadata removal (remove version and fileType fields)
-/// 29. Root blobs removal (remove now-unnecessary blobs array from output)
-/// 30. Symbol data removal (remove Figma component instance metadata)
-/// 31. Derived symbol data removal (remove derived symbol data and layout version)
-/// 32. GUID path removal (remove internal Figma guidPath references)
-/// 33. User facing version removal (remove Figma version strings)
-/// 34. Style ID removal (remove Figma shared style references)
-/// 35. Export settings removal (remove asset export configurations)
-/// 36. Plugin data removal (remove Figma plugin storage data)
-/// 37. Component properties removal (remove component property assignments)
-/// 38. Rectangle corner radii independent removal (remove corner radii independent flag)
-/// 39. Constraint properties removal (remove Figma auto-layout constraint properties)
-/// 40. Scroll/resize properties removal (remove Figma scroll and resize behavior properties)
-/// 41. Layout aids removal (remove design-time layout aids like guides and layoutGrids)
-/// 42. Detached symbol ID removal (remove Figma component instance metadata)
-/// 43. Redundant corner radii removal (remove individual corner radius fields when general cornerRadius exists)
-/// 44. Corner smoothing removal (remove Figma's corner smoothing property)
-/// 45. Invisible paints removal (remove invisible paints from fillPaints and strokePaints arrays)
+/// 20. Text data removal (remove Figma-specific textData field)
+/// 21. Default text properties removal (remove default letterSpacing/lineHeight values)
+/// 22. Text properties simplification (convert verbose letterSpacing/lineHeight to CSS strings)
+/// 23. Empty font postscript removal (remove empty postscript from fontName)
+/// 24. Stroke properties removal (remove CSS-incompatible stroke properties)
+/// 25. Border weights removal (remove individual border weight fields)
+/// 26. Frame properties removal (remove frame-specific metadata)
+/// 27. Background properties removal (remove backgroundEnabled, backgroundOpacity)
+/// 28. Image metadata removal (remove image metadata fields)
+/// 29. Internal-only nodes removal (filter out internalOnly: true nodes)
+/// 30. Default opacity removal (remove opacity: 1.0)
+/// 31. Default visible removal (remove visible: true)
+/// 32. Default rotation removal (remove rotation: 0.0)
+/// 33. Document properties removal (remove document-level properties)
+/// 34. Root metadata removal (remove version and fileType fields)
+/// 35. Root blobs removal (remove now-unnecessary blobs array from output)
+/// 36. Symbol data removal (remove Figma component instance metadata)
+/// 37. Derived symbol data removal (remove derived symbol data and layout version)
+/// 38. GUID path removal (remove internal Figma guidPath references)
+/// 39. User facing version removal (remove Figma version strings)
+/// 40. Style ID removal (remove Figma shared style references)
+/// 41. Export settings removal (remove asset export configurations)
+/// 42. Plugin data removal (remove Figma plugin storage data)
+/// 43. Component properties removal (remove component property assignments)
+/// 44. Rectangle corner radii independent removal (remove corner radii independent flag)
+/// 45. Constraint properties removal (remove Figma auto-layout constraint properties)
+/// 46. Scroll/resize properties removal (remove Figma scroll and resize behavior properties)
+/// 47. Layout aids removal (remove design-time layout aids like guides and layoutGrids)
+/// 48. Detached symbol ID removal (remove Figma component instance metadata)
+/// 49. Redundant corner radii removal (remove individual corner radius fields when general cornerRadius exists)
+/// 50. Corner smoothing removal (remove Figma's corner smoothing property)
+/// 51. Invisible paints removal (remove invisible paints from fillPaints and strokePaints arrays)
+/// 52. Empty paint arrays removal (remove empty fillPaints and strokePaints arrays)
+/// 53. Redundant padding removal (remove stackPaddingRight/stackPaddingBottom when axis-based padding exists)
+/// 54. Stack child properties removal (remove stackChildAlignSelf and stackChildPrimaryGrow)
+/// 55. Stack sizing properties removal (remove stackCounterSizing and stackPrimarySizing)
+/// 56. Stack alignment properties removal (remove stackCounterAlignItems and stackPrimaryAlignItems)
+/// 57. Type removal (remove type field from all nodes)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -208,34 +220,37 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // 24. Remove default text properties (letterSpacing 0%, lineHeight 100%)
     schema::remove_default_text_properties(&mut document)?;
 
-    // 25. Remove empty postscript from fontName objects
+    // 25. Simplify text properties (convert verbose letterSpacing/lineHeight to CSS strings)
+    schema::simplify_text_properties(&mut document)?;
+
+    // 26. Remove empty postscript from fontName objects
     schema::remove_empty_font_postscript(&mut document)?;
 
-    // 26. Remove stroke properties (CSS-incompatible stroke properties)
+    // 27. Remove stroke properties (CSS-incompatible stroke properties)
     schema::remove_stroke_properties(&mut document)?;
 
-    // 27. Remove border weight fields (CSS-incompatible individual border weights)
+    // 28. Remove border weight fields (CSS-incompatible individual border weights)
     schema::remove_border_weights(&mut document)?;
 
-    // 28. Remove frame properties (frame-specific metadata)
+    // 29. Remove frame properties (frame-specific metadata)
     schema::remove_frame_properties(&mut document)?;
 
-    // 29. Remove background properties (backgroundEnabled, backgroundOpacity)
+    // 30. Remove background properties (backgroundEnabled, backgroundOpacity)
     schema::remove_background_properties(&mut document)?;
 
-    // 30. Remove image metadata fields (image metadata, including imageThumbnail)
+    // 31. Remove image metadata fields (image metadata, including imageThumbnail)
     schema::remove_image_metadata_fields(&mut document)?;
 
-    // 31. Remove internal-only nodes (filter out internalOnly: true nodes)
+    // 32. Remove internal-only nodes (filter out internalOnly: true nodes)
     schema::remove_internal_only_nodes(&mut document)?;
 
-    // 32. Remove default opacity values (1.0 is the default)
+    // 33. Remove default opacity values (1.0 is the default)
     schema::remove_default_opacity(&mut document)?;
 
-    // 33. Remove default visible values (true is the default)
+    // 34. Remove default visible values (true is the default)
     schema::remove_default_visible(&mut document)?;
 
-    // 34. Remove default rotation values (0.0 is the default)
+    // 35. Remove default rotation values (0.0 is the default)
     schema::remove_default_rotation(&mut document)?;
 
     // Build final JSON output
@@ -249,62 +264,80 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
         "blobs": processed_blobs,
     });
 
-    // 35. Remove document properties (document-level properties)
+    // 36. Remove document properties (document-level properties)
     schema::remove_document_properties(&mut output)?;
 
-    // 36. Remove root-level metadata fields (version and fileType)
+    // 37. Remove root-level metadata fields (version and fileType)
     schema::remove_root_metadata(&mut output)?;
 
-    // 37. Remove root-level blobs array (no longer needed after substitution)
+    // 38. Remove root-level blobs array (no longer needed after substitution)
     schema::remove_root_blobs(&mut output)?;
 
-    // 38. Remove symbol data (Figma component instance metadata)
+    // 39. Remove symbol data (Figma component instance metadata)
     schema::remove_symbol_data(&mut output)?;
 
-    // 39. Remove derived symbol data (derived symbol data and layout version)
+    // 40. Remove derived symbol data (derived symbol data and layout version)
     schema::remove_derived_symbol_data(&mut output)?;
 
-    // 40. Remove guid paths (internal Figma guidPath references)
+    // 41. Remove guid paths (internal Figma guidPath references)
     schema::remove_guid_paths(&mut output)?;
 
-    // 41. Remove user facing versions (Figma version strings)
+    // 42. Remove user facing versions (Figma version strings)
     schema::remove_user_facing_versions(&mut output)?;
 
-    // 42. Remove style IDs (Figma shared style references)
+    // 43. Remove style IDs (Figma shared style references)
     schema::remove_style_ids(&mut output)?;
 
-    // 43. Remove export settings (asset export configurations)
+    // 44. Remove export settings (asset export configurations)
     schema::remove_export_settings(&mut output)?;
 
-    // 44. Remove plugin data (Figma plugin storage data)
+    // 45. Remove plugin data (Figma plugin storage data)
     schema::remove_plugin_data(&mut output)?;
 
-    // 45. Remove component properties (component property assignments)
+    // 46. Remove component properties (component property assignments)
     schema::remove_component_properties(&mut output)?;
 
-    // 46. Remove rectangle corner radii independent (corner radii independent flag)
+    // 47. Remove rectangle corner radii independent (corner radii independent flag)
     schema::remove_rectangle_corner_radii_independent(&mut output)?;
 
-    // 47. Remove constraint properties (horizontalConstraint, verticalConstraint)
+    // 48. Remove constraint properties (horizontalConstraint, verticalConstraint)
     schema::remove_constraint_properties(&mut output)?;
 
-    // 48. Remove scroll/resize properties (scrollBehavior, resizeToFit)
+    // 49. Remove scroll/resize properties (scrollBehavior, resizeToFit)
     schema::remove_scroll_resize_properties(&mut output)?;
 
-    // 49. Remove layout aids (guides, layoutGrids)
+    // 50. Remove layout aids (guides, layoutGrids)
     schema::remove_layout_aids(&mut output)?;
 
-    // 50. Remove detached symbol ID (Figma component instance metadata)
+    // 51. Remove detached symbol ID (Figma component instance metadata)
     schema::remove_detached_symbol_id(&mut output)?;
 
-    // 51. Remove redundant corner radii (individual corner radius fields when cornerRadius exists)
+    // 52. Remove redundant corner radii (individual corner radius fields when cornerRadius exists)
     schema::remove_redundant_corner_radii(&mut output)?;
 
-    // 52. Remove corner smoothing (Figma's corner smoothing property)
+    // 53. Remove corner smoothing (Figma's corner smoothing property)
     schema::remove_corner_smoothing(&mut output)?;
 
-    // 53. Remove invisible paints (filter out paints with visible: false)
+    // 54. Remove invisible paints (filter out paints with visible: false)
     schema::remove_invisible_paints(&mut output)?;
+
+    // 55. Remove empty paint arrays (remove empty fillPaints and strokePaints arrays)
+    schema::remove_empty_paint_arrays(&mut output)?;
+
+    // 56. Remove redundant padding properties (stackPaddingRight/stackPaddingBottom when axis-based padding exists)
+    schema::remove_redundant_padding(&mut output)?;
+
+    // 57. Remove stack child properties (stackChildAlignSelf, stackChildPrimaryGrow)
+    schema::remove_stack_child_properties(&mut output)?;
+
+    // 58. Remove stack sizing properties (stackCounterSizing, stackPrimarySizing)
+    schema::remove_stack_sizing_properties(&mut output)?;
+
+    // 59. Remove stack alignment properties (stackCounterAlignItems, stackPrimaryAlignItems)
+    schema::remove_stack_align_items(&mut output)?;
+
+    // 60. Remove type field from all nodes
+    schema::remove_type(&mut output)?;
 
     Ok(output)
 }
