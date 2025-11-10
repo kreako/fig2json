@@ -35,7 +35,7 @@ use serde_json::Value as JsonValue;
 ///         {
 ///             "overriddenSymbolID": {
 ///                 "localID": 789,
-///                 "sessionID": 012
+///                 "sessionID": 12
 ///             },
 ///             "textData": {
 ///                 "characters": "Hello"
@@ -280,7 +280,7 @@ mod tests {
                                 {
                                     "overriddenSymbolID": {
                                         "localID": 789,
-                                        "sessionID": 012
+                                        "sessionID": 12
                                     }
                                 },
                                 {
