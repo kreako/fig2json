@@ -43,7 +43,7 @@ The clean JSON structure makes it easier for AI to understand your design and ho
 ## Installation
 
 ```bash
-cargo install --path .
+cargo install fig2json
 ```
 
 Or build from source:
