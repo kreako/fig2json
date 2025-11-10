@@ -7,7 +7,7 @@ description = "CLI tool to convert Figma .fig files to LLM-friendly JSON format"
 license = "MIT"
 repository = "https://github.com/kreako/fig2json"
 readme = "README.md"
-keywords = ["figma", "converter", "json", "cli", "design", "llm"]
+keywords = ["figma", "converter", "json", "cli", "llm"]
 categories = ["command-line-utilities", "encoding"]
 
 [dependencies]
