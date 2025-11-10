@@ -19,7 +19,7 @@ pub use transformations::{
     remove_redundant_padding, remove_root_blobs, remove_root_metadata,
     remove_scroll_resize_properties, remove_stack_align_items, remove_stack_child_properties,
     remove_stack_sizing_properties, remove_stroke_properties, remove_style_ids,
-    remove_text_glyphs,
+    remove_symbol_id_fields, remove_text_glyphs,
     remove_text_layout_fields, remove_default_text_line_properties, remove_text_metadata_fields, remove_type,
     remove_user_facing_versions, simplify_enums, simplify_text_properties,
     transform_colors_to_css, transform_image_hashes, transform_matrix_to_css,

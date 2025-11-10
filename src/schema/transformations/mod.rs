@@ -54,6 +54,7 @@
 /// - `type_removal`: Remove type field from all nodes
 /// - `empty_paint_arrays_removal`: Remove empty fillPaints and strokePaints arrays
 /// - `overridden_symbol_id_removal`: Remove standalone overriddenSymbolID objects from arrays
+/// - `symbol_id_removal`: Remove symbolID objects containing only localID and/or sessionID
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
@@ -98,6 +99,7 @@ pub mod stack_child_properties_removal;
 pub mod stack_sizing_properties_removal;
 pub mod stroke_properties_removal;
 pub mod style_id_removal;
+pub mod symbol_id_removal;
 pub mod text_glyphs_removal;
 pub mod text_layout_removal;
 pub mod text_line_defaults_removal;
@@ -151,6 +153,7 @@ pub use stack_child_properties_removal::remove_stack_child_properties;
 pub use stack_sizing_properties_removal::remove_stack_sizing_properties;
 pub use stroke_properties_removal::remove_stroke_properties;
 pub use style_id_removal::remove_style_ids;
+pub use symbol_id_removal::remove_symbol_id_fields;
 pub use text_glyphs_removal::remove_text_glyphs;
 pub use text_layout_removal::remove_text_layout_fields;
 pub use text_line_defaults_removal::remove_default_text_line_properties;
