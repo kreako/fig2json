@@ -14,6 +14,7 @@
 /// - `geometry_removal`: Remove detailed geometry path commands
 /// - `text_layout_removal`: Remove detailed text layout data
 /// - `text_metadata_removal`: Remove text configuration metadata
+/// - `text_line_defaults_removal`: Remove default text line properties from lines arrays
 /// - `stroke_properties_removal`: Remove CSS-incompatible stroke properties
 /// - `frame_properties_removal`: Remove frame-specific metadata
 /// - `image_metadata_removal`: Remove image metadata fields
@@ -52,6 +53,7 @@
 /// - `text_properties_simplification`: Simplify verbose letterSpacing/lineHeight structures to CSS-ready strings
 /// - `type_removal`: Remove type field from all nodes
 /// - `empty_paint_arrays_removal`: Remove empty fillPaints and strokePaints arrays
+/// - `overridden_symbol_id_removal`: Remove standalone overriddenSymbolID objects from arrays
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
@@ -83,6 +85,7 @@ pub mod internal_only_nodes_removal;
 pub mod invisible_paints_removal;
 pub mod layout_aids_removal;
 pub mod matrix_to_css;
+pub mod overridden_symbol_id_removal;
 pub mod phase_removal;
 pub mod plugin_data_removal;
 pub mod rectangle_corner_radii_independent_removal;
@@ -97,6 +100,7 @@ pub mod stroke_properties_removal;
 pub mod style_id_removal;
 pub mod text_glyphs_removal;
 pub mod text_layout_removal;
+pub mod text_line_defaults_removal;
 pub mod text_metadata_removal;
 pub mod text_properties_simplification;
 pub mod type_removal;
@@ -134,6 +138,7 @@ pub use internal_only_nodes_removal::remove_internal_only_nodes;
 pub use invisible_paints_removal::remove_invisible_paints;
 pub use layout_aids_removal::remove_layout_aids;
 pub use matrix_to_css::transform_matrix_to_css;
+pub use overridden_symbol_id_removal::remove_overridden_symbol_id;
 pub use phase_removal::remove_phase_fields;
 pub use plugin_data_removal::remove_plugin_data;
 pub use rectangle_corner_radii_independent_removal::remove_rectangle_corner_radii_independent;
@@ -148,6 +153,7 @@ pub use stroke_properties_removal::remove_stroke_properties;
 pub use style_id_removal::remove_style_ids;
 pub use text_glyphs_removal::remove_text_glyphs;
 pub use text_layout_removal::remove_text_layout_fields;
+pub use text_line_defaults_removal::remove_default_text_line_properties;
 pub use text_metadata_removal::remove_text_metadata_fields;
 pub use text_properties_simplification::simplify_text_properties;
 pub use type_removal::remove_type;
