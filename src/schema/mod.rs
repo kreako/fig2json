@@ -21,7 +21,7 @@ pub use transformations::{
     remove_stack_sizing_properties, remove_stroke_properties, remove_style_ids,
     remove_symbol_id_fields, remove_text_glyphs,
     remove_text_layout_fields, remove_default_text_line_properties, remove_text_metadata_fields, remove_type,
-    remove_user_facing_versions, simplify_enums, simplify_text_properties,
+    remove_user_facing_versions, remove_visible_only_objects, simplify_enums, simplify_text_properties,
     transform_colors_to_css, transform_image_hashes, transform_matrix_to_css,
 };
 pub use tree::build_tree;

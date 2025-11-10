@@ -96,7 +96,8 @@ pub use types::{FileType, ParsedFile};
 /// 54. Stack alignment properties removal (remove stackCounterAlignItems and stackPrimaryAlignItems)
 /// 55. Symbol ID removal (remove symbolID objects containing only localID and/or sessionID)
 /// 56. Type removal (remove type field from all nodes)
-/// 57. Empty objects removal (remove empty objects {} from the JSON tree)
+/// 57. Visible-only objects removal (remove objects that only contain a visible property)
+/// 58. Empty objects removal (remove empty objects {} from the JSON tree)
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
@@ -336,7 +337,10 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // 59. Remove type field from all nodes
     schema::remove_type(&mut output)?;
 
-    // 60. Remove empty objects {} from the JSON tree
+    // 60. Remove objects that only contain a visible property
+    schema::remove_visible_only_objects(&mut output)?;
+
+    // 61. Remove empty objects {} from the JSON tree
     schema::remove_empty_objects(&mut output)?;
 
     Ok(output)

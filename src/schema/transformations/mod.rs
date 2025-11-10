@@ -55,6 +55,7 @@
 /// - `empty_paint_arrays_removal`: Remove empty fillPaints and strokePaints arrays
 /// - `overridden_symbol_id_removal`: Remove standalone overriddenSymbolID objects from arrays
 /// - `symbol_id_removal`: Remove symbolID objects containing only localID and/or sessionID
+/// - `visible_only_objects_removal`: Remove objects that only contain a visible property
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
@@ -107,6 +108,7 @@ pub mod text_metadata_removal;
 pub mod text_properties_simplification;
 pub mod type_removal;
 pub mod user_facing_version_removal;
+pub mod visible_only_objects_removal;
 
 // Re-export commonly used functions
 pub use background_properties_removal::remove_background_properties;
@@ -161,3 +163,4 @@ pub use text_metadata_removal::remove_text_metadata_fields;
 pub use text_properties_simplification::simplify_text_properties;
 pub use type_removal::remove_type;
 pub use user_facing_version_removal::remove_user_facing_versions;
+pub use visible_only_objects_removal::remove_visible_only_objects;
