@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     fn test_substitute_preserves_other_fields() {
-        let mut blob_bytes = vec![0]; // Z
+        let blob_bytes = vec![0]; // Z
 
         let blobs = vec![json!({
             "bytes": blob_bytes
