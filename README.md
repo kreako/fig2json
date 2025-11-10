@@ -38,6 +38,8 @@ Implement the design found in output-directory/canvas.json
 
 The clean JSON structure makes it easier for AI to understand your design and hopefully generate accurate HTML/CSS.
 
+**Tip:** For easier LLM consumption, consider using [jq](https://github.com/jqlang/jq) to extract specific parts of the design or to further process the JSON before sending it to your LLM.
+
 ## Installation
 
 ```bash
