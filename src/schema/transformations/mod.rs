@@ -56,6 +56,7 @@
 /// - `overridden_symbol_id_removal`: Remove standalone overriddenSymbolID objects from arrays
 /// - `symbol_id_removal`: Remove symbolID objects containing only localID and/or sessionID
 /// - `visible_only_objects_removal`: Remove objects that only contain a visible property
+/// - `uniform_scale_factor_removal`: Remove default uniformScaleFactor values (1.0)
 pub mod background_properties_removal;
 pub mod blobs_removal;
 pub mod border_weights_removal;
@@ -107,6 +108,7 @@ pub mod text_line_defaults_removal;
 pub mod text_metadata_removal;
 pub mod text_properties_simplification;
 pub mod type_removal;
+pub mod uniform_scale_factor_removal;
 pub mod user_facing_version_removal;
 pub mod visible_only_objects_removal;
 
@@ -162,5 +164,6 @@ pub use text_line_defaults_removal::remove_default_text_line_properties;
 pub use text_metadata_removal::remove_text_metadata_fields;
 pub use text_properties_simplification::simplify_text_properties;
 pub use type_removal::remove_type;
+pub use uniform_scale_factor_removal::remove_default_uniform_scale_factor;
 pub use user_facing_version_removal::remove_user_facing_versions;
 pub use visible_only_objects_removal::remove_visible_only_objects;
