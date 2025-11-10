@@ -12,11 +12,15 @@ use serde_json::Value as JsonValue;
 /// These fields contain detailed path geometry that is overkill for simple
 /// shapes in HTML/CSS rendering.
 ///
+/// **Exception**: Geometry is preserved for icons and images, which are identified by:
+/// - Having exportSettings with imageType (SVG/PNG) in symbolData.symbolOverrides
+/// - Having node names starting with "icon/" or "arrows/"
+///
 /// # Arguments
 /// * `tree` - The JSON tree to modify (usually the document root)
 ///
 /// # Returns
-/// * `Ok(())` - Successfully removed all geometry fields
+/// * `Ok(())` - Successfully removed all geometry fields (except for icons/images)
 ///
 /// # Examples
 /// ```no_run
@@ -44,15 +48,69 @@ pub fn remove_geometry_fields(tree: &mut JsonValue) -> Result<()> {
     transform_recursive(tree)
 }
 
+/// Determines if geometry data should be preserved for this node
+///
+/// Geometry is preserved for icons and images, which are identified by:
+/// 1. Having exportSettings with imageType field at the top level (indicates SVG/PNG export)
+/// 2. Having a name starting with "icon/" or "arrows/" (common icon naming patterns)
+///
+/// Note: We only check the node's OWN name, not names in symbolOverrides which represent
+/// child components.
+///
+/// # Arguments
+/// * `value` - The JSON node to check
+///
+/// # Returns
+/// * `true` if geometry should be preserved, `false` if it should be removed
+fn should_preserve_geometry(value: &JsonValue) -> bool {
+    if let Some(obj) = value.as_object() {
+        // Check 1: Look for icon/image name patterns (THIS node's name, not children)
+        if let Some(name) = obj.get("name") {
+            if let Some(name_str) = name.as_str() {
+                if name_str.starts_with("icon/") || name_str.starts_with("arrows/") {
+                    return true; // Icon or arrow, preserve geometry
+                }
+            }
+        }
+
+        // Check 2: Look for exportSettings with imageType in symbolData.symbolOverrides
+        // This checks if THIS specific node has export settings (not child overrides)
+        if let Some(symbol_data) = obj.get("symbolData") {
+            if let Some(overrides) = symbol_data.get("symbolOverrides") {
+                if let Some(overrides_array) = overrides.as_array() {
+                    for override_item in overrides_array {
+                        if let Some(export_settings) = override_item.get("exportSettings") {
+                            if let Some(settings_array) = export_settings.as_array() {
+                                for setting in settings_array {
+                                    if setting.get("imageType").is_some() {
+                                        return true; // Has imageType, preserve geometry
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    false // Not an icon/image, remove geometry
+}
+
 /// Recursively remove geometry fields from a JSON value
 fn transform_recursive(value: &mut JsonValue) -> Result<()> {
+    // Check if we should preserve geometry BEFORE matching (to avoid borrow checker issues)
+    let preserve = should_preserve_geometry(value);
+
     match value {
         JsonValue::Object(map) => {
-            // Remove geometry-related fields if they exist
-            map.remove("fillGeometry");
-            map.remove("strokeGeometry");
-            map.remove("windingRule");
-            map.remove("styleID");
+            // Only remove geometry if this is not an icon/image node
+            if !preserve {
+                map.remove("fillGeometry");
+                map.remove("strokeGeometry");
+                map.remove("windingRule");
+                map.remove("styleID");
+            }
 
             // Recurse into all remaining values
             let keys: Vec<String> = map.keys().cloned().collect();
@@ -315,5 +373,280 @@ mod tests {
 
         // Empty object should remain empty
         assert_eq!(tree.as_object().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_preserve_geometry_for_icon_with_export_settings_svg() {
+        let mut tree = json!({
+            "name": "icon/ai",
+            "fillGeometry": [
+                {
+                    "commands": ["M", 14.1667, 1.11133, "L", 5.83339, 1.11133, "Z"],
+                    "styleID": 0
+                }
+            ],
+            "symbolData": {
+                "symbolOverrides": [
+                    {
+                        "exportSettings": [
+                            {
+                                "imageType": {
+                                    "__enum__": "ImageType",
+                                    "value": "SVG"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Geometry should be preserved for icons with exportSettings
+        assert!(tree.get("fillGeometry").is_some());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("icon/ai"));
+    }
+
+    #[test]
+    fn test_preserve_geometry_for_icon_with_export_settings_png() {
+        let mut tree = json!({
+            "name": "arrows/chevron-right",
+            "strokeGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "L", 10.0, 10.0],
+                    "styleID": 0
+                }
+            ],
+            "symbolData": {
+                "symbolOverrides": [
+                    {
+                        "exportSettings": [
+                            {
+                                "imageType": {
+                                    "__enum__": "ImageType",
+                                    "value": "PNG"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Geometry should be preserved for PNG icons
+        assert!(tree.get("strokeGeometry").is_some());
+        assert_eq!(
+            tree.get("name").unwrap().as_str(),
+            Some("arrows/chevron-right")
+        );
+    }
+
+    #[test]
+    fn test_preserve_geometry_for_icon_by_name_pattern() {
+        let mut tree = json!({
+            "name": "icon/star",
+            "fillGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "Z"],
+                    "styleID": 0
+                }
+            ]
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Geometry should be preserved based on name pattern alone
+        assert!(tree.get("fillGeometry").is_some());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("icon/star"));
+    }
+
+    #[test]
+    fn test_preserve_geometry_for_arrows_by_name_pattern() {
+        let mut tree = json!({
+            "name": "arrows/left",
+            "fillGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "Z"],
+                    "styleID": 0
+                }
+            ],
+            "strokeGeometry": [
+                {
+                    "commands": ["L", 10.0, 10.0],
+                    "styleID": 1
+                }
+            ]
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Geometry should be preserved for arrows
+        assert!(tree.get("fillGeometry").is_some());
+        assert!(tree.get("strokeGeometry").is_some());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("arrows/left"));
+    }
+
+    #[test]
+    fn test_remove_geometry_for_non_icon_with_name() {
+        let mut tree = json!({
+            "name": "Button",
+            "fillGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "Z"],
+                    "styleID": 0
+                }
+            ]
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Geometry should be removed for regular elements
+        assert!(tree.get("fillGeometry").is_none());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("Button"));
+    }
+
+    #[test]
+    fn test_mixed_icon_and_regular_nodes() {
+        let mut tree = json!({
+            "name": "Root",
+            "children": [
+                {
+                    "name": "icon/home",
+                    "fillGeometry": [
+                        {
+                            "commands": ["M", 0.0, 0.0, "Z"],
+                            "styleID": 0
+                        }
+                    ]
+                },
+                {
+                    "name": "Button",
+                    "fillGeometry": [
+                        {
+                            "commands": ["M", 0.0, 0.0, "Z"],
+                            "styleID": 0
+                        }
+                    ]
+                }
+            ]
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Icon should preserve geometry
+        assert!(tree["children"][0].get("fillGeometry").is_some());
+        assert_eq!(
+            tree["children"][0].get("name").unwrap().as_str(),
+            Some("icon/home")
+        );
+
+        // Button should have geometry removed
+        assert!(tree["children"][1].get("fillGeometry").is_none());
+        assert_eq!(
+            tree["children"][1].get("name").unwrap().as_str(),
+            Some("Button")
+        );
+    }
+
+    #[test]
+    fn test_preserve_geometry_in_derived_symbol_data() {
+        let mut tree = json!({
+            "name": "Root",
+            "derivedSymbolData": [
+                {
+                    "fillGeometry": [
+                        {
+                            "commands": ["M", 0.0, 0.0, "Z"],
+                            "styleID": 0
+                        }
+                    ]
+                }
+            ],
+            "symbolData": {
+                "symbolOverrides": [
+                    {
+                        "exportSettings": [
+                            {
+                                "imageType": {
+                                    "__enum__": "ImageType",
+                                    "value": "SVG"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Node-level geometry should be preserved due to exportSettings
+        // But derivedSymbolData is an array, so it gets recursed differently
+        // The geometry in derivedSymbolData should be removed because derivedSymbolData elements
+        // themselves don't have exportSettings
+        assert!(tree["derivedSymbolData"][0]
+            .get("fillGeometry")
+            .is_none());
+    }
+
+    #[test]
+    fn test_preserve_both_fill_and_stroke_geometry_for_icons() {
+        let mut tree = json!({
+            "name": "icon/complex",
+            "fillGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "Z"],
+                    "styleID": 0
+                }
+            ],
+            "strokeGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "L", 10.0, 10.0],
+                    "styleID": 1
+                }
+            ],
+            "windingRule": {
+                "__enum__": "WindingRule",
+                "value": "NONZERO"
+            },
+            "styleID": 5
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // All geometry fields should be preserved for icons
+        assert!(tree.get("fillGeometry").is_some());
+        assert!(tree.get("strokeGeometry").is_some());
+        assert!(tree.get("windingRule").is_some());
+        assert!(tree.get("styleID").is_some());
+    }
+
+    #[test]
+    fn test_remove_geometry_from_button_with_icon_child() {
+        let mut tree = json!({
+            "name": "Button",
+            "fillGeometry": [
+                {
+                    "commands": ["M", 0.0, 0.0, "Z"],
+                    "styleID": 0
+                }
+            ],
+            "symbolData": {
+                "symbolOverrides": [
+                    {
+                        "name": "icon/settings"
+                    }
+                ]
+            }
+        });
+
+        remove_geometry_fields(&mut tree).unwrap();
+
+        // Button should have geometry removed even if it has icon children in symbolOverrides
+        assert!(tree.get("fillGeometry").is_none());
+        assert_eq!(tree.get("name").unwrap().as_str(), Some("Button"));
     }
 }
