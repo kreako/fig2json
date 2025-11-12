@@ -76,7 +76,15 @@ fn main() -> Result<()> {
             eprintln!("Converting to JSON...");
         }
 
-        let json = fig2json::convert(&bytes).context("Failed to convert .fig file to JSON")?;
+        // Determine base directory for image file operations
+        let base_dir = if let Some(output_path) = &cli.output {
+            output_path.parent()
+        } else {
+            // If outputting to stdout, use current directory
+            Some(std::path::Path::new("."))
+        };
+
+        let json = fig2json::convert(&bytes, base_dir).context("Failed to convert .fig file to JSON")?;
 
         if cli.verbose {
             eprintln!("Conversion successful!");
@@ -191,8 +199,11 @@ fn handle_zip_mode(zip_bytes: &[u8], extract_dir: &PathBuf, compact: bool, verbo
         let fig_bytes = fs::read(&fig_path)
             .with_context(|| format!("Failed to read .fig file: {}", fig_path.display()))?;
 
+        // Determine base directory for image file operations (parent of .fig file)
+        let base_dir = fig_path.parent();
+
         // Convert to JSON
-        let json = fig2json::convert(&fig_bytes)
+        let json = fig2json::convert(&fig_bytes, base_dir)
             .with_context(|| format!("Failed to convert: {}", fig_path.display()))?;
 
         // Format output (pretty by default, compact if flag is set)

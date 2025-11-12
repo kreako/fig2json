@@ -102,6 +102,7 @@ pub use types::{FileType, ParsedFile};
 ///
 /// # Arguments
 /// * `bytes` - Raw bytes from the .fig file
+/// * `base_dir` - Optional base directory where image files are located (for renaming with extensions)
 ///
 /// # Returns
 /// * `Ok(serde_json::Value)` - JSON representation with document tree and metadata
@@ -110,12 +111,13 @@ pub use types::{FileType, ParsedFile};
 /// # Example
 /// ```no_run
 /// use fig2json::convert;
+/// use std::path::Path;
 ///
 /// let bytes = std::fs::read("example.fig").unwrap();
-/// let json = convert(&bytes).unwrap();
+/// let json = convert(&bytes, Some(Path::new("/output/dir"))).unwrap();
 /// println!("{}", serde_json::to_string_pretty(&json).unwrap());
 /// ```
-pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
+pub fn convert(bytes: &[u8], base_dir: Option<&std::path::Path>) -> Result<serde_json::Value> {
     // 1. Detect and extract from ZIP if needed
     let bytes = if parser::is_zip_container(bytes) {
         parser::extract_from_zip(bytes)?
@@ -168,9 +170,15 @@ pub fn convert(bytes: &[u8]) -> Result<serde_json::Value> {
     // This replaces fields like "commandsBlob: 5" with "commands: [parsed array]"
     blobs::substitute_blobs(&mut document, processed_blobs.as_array().unwrap())?;
 
-    // 9. Transform image hash arrays to filename strings
-    // This converts "image.hash: [96, 73, ...]" to "image.filename: images/6049..."
-    schema::transform_image_hashes(&mut document)?;
+    // 9. Transform image hash arrays to filename strings with extensions
+    // This converts "image.hash: [96, 73, ...]" to "image.filename: images/6049.jpg"
+    // Also detects format and renames physical files if base_dir is provided
+    if let Some(dir) = base_dir {
+        schema::transform_image_hashes(&mut document, dir)?;
+    } else {
+        // If no base_dir provided, use current directory as fallback
+        schema::transform_image_hashes(&mut document, std::path::Path::new("."))?;
+    }
 
     // 10. Transform 2D affine transformation matrices to CSS properties
     // This converts "transform: {m00, m01, m02, m10, m11, m12}" to "transform: {x, y, rotation, scaleX, scaleY, skewX}"
