@@ -64,10 +64,6 @@ fn main() -> Result<()> {
             bail!("Cannot use -o/--output flag with extraction directory (ZIP mode)");
         }
 
-        if extract_dir.exists() {
-            bail!("Extraction directory already exists: {}\nPlease remove it first", extract_dir.display());
-        }
-
         // ZIP extraction mode
         handle_zip_mode(&bytes, extract_dir, cli.compact, cli.verbose, cli.raw)?;
     } else {
